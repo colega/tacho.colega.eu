@@ -19,6 +19,11 @@ import java.time.format.DateTimeFormatter
  */
 class CardRepository {
 
+    private companion object {
+        const val LAST_DUMP_FILE = "last-card.tcd"
+    }
+
+
     /** Parse a dump where every elementary file appears contiguously, 2-byte FID prefixed. */
     fun fromConcatenatedDump(bytes: ByteArray): DriverCardDump {
         val files = mutableMapOf<Int, ByteArray>()
@@ -71,6 +76,22 @@ class CardRepository {
             .putExtra(Intent.EXTRA_STREAM, uri)
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
+
+    /**
+     * Persist the dump so the card survives app restarts; drivers should not
+     * lose their data because the process was killed.
+     */
+    fun saveLastDump(context: Context, dump: DriverCardDump) {
+        context.openFileOutput(LAST_DUMP_FILE, Context.MODE_PRIVATE).use {
+            it.write(toConcatenatedDump(dump))
+        }
+    }
+
+    /** Restore the last persisted dump, or null when none is stored or it is unreadable. */
+    fun loadLastDump(context: Context): DriverCardDump? =
+        context.filesDir.resolve(LAST_DUMP_FILE)
+            .takeIf { it.exists() }
+            ?.let { file -> runCatching { fromConcatenatedDump(file.readBytes()) }.getOrNull() }
 
     /** Import a previously exported dump from a content [Uri]. */
     fun importFromUri(context: Context, uri: Uri): DriverCardDump {

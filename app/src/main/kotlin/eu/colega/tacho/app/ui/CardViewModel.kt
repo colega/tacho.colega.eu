@@ -4,13 +4,15 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import eu.colega.tacho.app.data.IoDispatcher
 import eu.colega.tacho.app.data.CardRepository
 import eu.colega.tacho.core.analysis.ActivityAnalysis
 import eu.colega.tacho.core.tachograph.DriverCard
 import eu.colega.tacho.core.tachograph.DriverCardDump
 import eu.colega.tacho.core.tachograph.DriverCardParser
 import javax.inject.Inject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -32,6 +34,8 @@ data class CardUiState(
 @HiltViewModel
 class CardViewModel @Inject constructor(
     private val repository: CardRepository,
+    @ApplicationContext private val appContext: Context,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(CardUiState())
@@ -39,15 +43,24 @@ class CardViewModel @Inject constructor(
 
     private var currentDump: DriverCardDump? = null
 
+    init {
+        // Restore the last read card so data survives process death.
+        viewModelScope.launch(ioDispatcher) {
+            repository.loadLastDump(appContext)?.let { onDumpRead(it) }
+        }
+    }
+
     private val _exportIntent = MutableSharedFlow<android.content.Intent>(extraBufferCapacity = 1)
     val exportIntent: SharedFlow<android.content.Intent> = _exportIntent.asSharedFlow()
 
-    /** Parse a completed dump and update the UI state. */
+    /** Parse a completed dump, update the UI state and persist it. */
     fun onDumpRead(dump: DriverCardDump) {
         currentDump = dump
         _state.value = try {
             val card = DriverCardParser.parse(dump)
-            CardUiState(card = card, analysis = ActivityAnalysis.analyze(card.activity))
+            val analysis = ActivityAnalysis.analyze(card.activity)
+            runCatching { repository.saveLastDump(appContext, dump) }
+            CardUiState(card = card, analysis = analysis)
         } catch (e: Exception) {
             CardUiState(error = e.message ?: "failed to parse card data")
         }
@@ -68,7 +81,7 @@ class CardViewModel @Inject constructor(
 
     /** Import a previously exported dump file chosen through the SAF picker. */
     fun importDump(context: Context, uri: Uri) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             setReading(true)
             try {
                 onDumpRead(repository.importFromUri(context, uri))
@@ -81,7 +94,7 @@ class CardViewModel @Inject constructor(
     /** Serialise the current dump and hand a share intent back to the UI. */
     fun requestExport(context: Context) {
         val dump = currentDump ?: return
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             setExporting(true)
             val intent = runCatching { repository.exportToShareIntent(context, dump) }
                 .onFailure { onReadError(it.message ?: "export failed") }
