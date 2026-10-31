@@ -13,3 +13,4 @@ omp-personal
 *.hprof
 .kotlin
 **/build/
+**/.tooling/
