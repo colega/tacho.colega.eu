@@ -74,7 +74,7 @@ private fun DayRow(summary: ActivityAnalysis.DailySummary) {
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(summary.date.toString(), style = MaterialTheme.typography.titleMedium)
+            Text(summary.date.displayDate(), style = MaterialTheme.typography.titleMedium)
             Text(
                 stringResource(R.string.timeline_driving_hours, summary.drivingMinutes / 60),
                 style = MaterialTheme.typography.bodyMedium,

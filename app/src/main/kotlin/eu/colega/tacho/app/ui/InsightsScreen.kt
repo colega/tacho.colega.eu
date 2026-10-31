@@ -101,7 +101,7 @@ private fun WeeklyChart(analysis: ActivityAnalysis.Analysis) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                            stringResource(R.string.insights_week_of, week.weekStart),
+                            stringResource(R.string.insights_week_of, week.weekStart.displayDate()),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -152,7 +152,7 @@ private fun Violations(violations: List<Violation>) {
                         color = MaterialTheme.colorScheme.onErrorContainer,
                     )
                     Text(
-                        "${violation.description} · ${violation.date}",
+                        violation.date.displayDate(),
                         Modifier.padding(top = 2.dp),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onErrorContainer,
