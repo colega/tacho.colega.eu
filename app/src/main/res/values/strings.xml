@@ -10,6 +10,9 @@
     <!-- Card overview -->
     <string name="card_title">Driver card</string>
     <string name="card_reading">Reading card…</string>
+    <string name="nfc_disabled_title">NFC is switched off</string>
+    <string name="nfc_disabled_body">Turn NFC on to read your tachograph card.</string>
+    <string name="nfc_open_settings">Open NFC settings</string>
     <string name="card_empty_title">No card read yet</string>
     <string name="card_empty_body">Hold the card against the back of the phone until the read completes.</string>
     <string name="card_number">Card number %1$s</string>

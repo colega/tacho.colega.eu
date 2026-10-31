@@ -24,6 +24,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -63,6 +64,30 @@ fun CardScreen(
 
         val card = state.card
         if (card == null) {
+            if (state.nfcEnabled == false) {
+                Card(
+                    Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                ) {
+                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text(
+                            stringResource(R.string.nfc_disabled_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                        Text(
+                            stringResource(R.string.nfc_disabled_body),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                        OutlinedButton(onClick = {
+                            context.startActivity(Intent(android.provider.Settings.ACTION_NFC_SETTINGS))
+                        }) {
+                            Text(stringResource(R.string.nfc_open_settings))
+                        }
+                    }
+                }
+            }
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(16.dp)) {
                     Text(stringResource(R.string.card_empty_title), style = MaterialTheme.typography.titleMedium)

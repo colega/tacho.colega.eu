@@ -29,6 +29,8 @@ data class CardUiState(
     val card: DriverCard? = null,
     val analysis: ActivityAnalysis.Analysis? = null,
     val error: String? = null,
+    /** null = this device has no NFC chip at all. */
+    val nfcEnabled: Boolean? = null,
 )
 
 @HiltViewModel
@@ -68,6 +70,11 @@ class CardViewModel @Inject constructor(
 
     fun onReadError(message: String) {
         _state.value = CardUiState(error = message)
+    }
+
+    /** Report the phone's NFC adapter state, checked on every resume. */
+    fun onNfcStateChanged(enabled: Boolean?) {
+        _state.update { it.copy(nfcEnabled = enabled) }
     }
 
     fun setReading(isReading: Boolean) {

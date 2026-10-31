@@ -30,6 +30,7 @@ class MainActivity : ComponentActivity() {
         // Reader mode delivers ISO-DEP tags while the app is open, without
         // competing with other apps' tag dispatch.
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+        cardViewModel.onNfcStateChanged(nfcAdapter?.isEnabled)
         nfcAdapter?.enableReaderMode(
             this,
             { tag -> handleTag(tag) },
