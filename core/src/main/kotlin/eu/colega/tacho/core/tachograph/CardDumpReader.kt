@@ -55,7 +55,12 @@ class CardDumpReader(
                     offset += response.data.size
                 }
                 response.statusWord == Apdu.SW_EOF_REACHED -> break // file fully read
-                else -> break // tolerate '62xx' warnings etc.; keep what we have
+                response.statusWord and 0xFF00 == 0x6200 -> break // '62xx' warning: data still valid
+                response.statusWord and 0xFF00 == 0x6900 ->
+                    throw IllegalStateException(
+                        "card refused read of EF %04X (SW %04X)".format(fid, response.statusWord)
+                    )
+                else -> break // unknown condition: keep what we have
             }
         }
         return out.toByteArray()

@@ -19,6 +19,7 @@ class CardDumpReaderTest {
         var selectedAid: ByteArray? = null
         var selectedFile: Int? = null
         var rejectAid = false
+        var secureFile: Int? = null
 
         override fun invoke(command: ByteArray): ByteArray {
             return when (command[1].toInt() and 0xFF) {
@@ -52,6 +53,7 @@ class CardDumpReaderTest {
             val fid = selectedFile ?: return status(Apdu.SW_NO_EF_SELECTED)
             val offset = ((command[2].toInt() and 0xFF) shl 8) or (command[3].toInt() and 0xFF)
             val requested = command[4].toInt() and 0xFF
+            if (secureFile == fid) return status(Apdu.SW_SECURITY_NOT_SATISFIED)
             val data = files.getValue(fid)
             if (offset >= data.size) return status(Apdu.SW_EOF_REACHED)
             val end = minOf(offset + requested, data.size)
@@ -95,6 +97,18 @@ class CardDumpReaderTest {
         val dump = CardDumpReader(card).readDriverCard()
         assertNull(dump.file(Layout.EF_APPLICATION_IDENTIFICATION_V2))
         assertEquals(1, dump.fileIds.size)
+    }
+
+    @Test
+    fun `a security-blocked read aborts instead of returning a truncated file`() {
+        val card = ScriptedCard().apply {
+            files[Layout.EF_APPLICATION_IDENTIFICATION] = sampleFile(17, 1)
+            files[Layout.EF_EVENTS_DATA] = sampleFile(96, 2)
+            secureFile = Layout.EF_EVENTS_DATA
+        }
+        val exception = runCatching { CardDumpReader(card).readDriverCard() }.exceptionOrNull()
+        assertTrue(exception is IllegalStateException)
+        assertTrue(exception!!.message!!.contains("0502"))
     }
 
     @Test
