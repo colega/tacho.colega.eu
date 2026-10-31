@@ -24,7 +24,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import android.content.Intent
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -37,6 +36,8 @@ import eu.colega.tacho.core.tachograph.DriverCard
 @Composable
 fun CardScreen(
     viewModel: CardViewModel = hiltViewModel(),
+    attachedReader: kotlinx.coroutines.flow.StateFlow<android.hardware.usb.UsbDevice?>? = null,
+    onReadViaReader: (() -> Unit)? = null,
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
@@ -64,27 +65,11 @@ fun CardScreen(
 
         val card = state.card
         if (card == null) {
-            if (state.nfcEnabled == false) {
-                Card(
-                    Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            stringResource(R.string.nfc_disabled_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                        )
-                        Text(
-                            stringResource(R.string.nfc_disabled_body),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                        )
-                        OutlinedButton(onClick = {
-                            context.startActivity(Intent(android.provider.Settings.ACTION_NFC_SETTINGS))
-                        }) {
-                            Text(stringResource(R.string.nfc_open_settings))
-                        }
+            if (attachedReader != null && onReadViaReader != null) {
+                val reader by attachedReader.collectAsState()
+                if (reader != null && !state.isReading) {
+                    Button(onClick = onReadViaReader) {
+                        Text(stringResource(R.string.card_read_reader))
                     }
                 }
             }
@@ -97,6 +82,13 @@ fun CardScreen(
                         style = MaterialTheme.typography.bodyMedium,
                     )
                 }
+            }
+            state.error?.let { error ->
+                Text(
+                    error,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
             }
         } else {
             HolderCard(card)

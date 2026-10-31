@@ -9,12 +9,10 @@
 
     <!-- Resumen de la tarjeta -->
     <string name="card_title">Tarjeta de conductor</string>
-    <string name="card_reading">Leyendo tarjeta…</string>
-    <string name="nfc_disabled_title">El NFC está desactivado</string>
-    <string name="nfc_disabled_body">Activa el NFC para leer tu tarjeta de tacógrafo.</string>
-    <string name="nfc_open_settings">Abrir ajustes de NFC</string>
+    <string name="card_reading">Leyendo la tarjeta con el lector…</string>
+    <string name="card_read_reader">Leer tarjeta con el lector</string>
     <string name="card_empty_title">Aún no se ha leído ninguna tarjeta</string>
-    <string name="card_empty_body">Mantén la tarjeta en la parte trasera del teléfono hasta que termine la lectura.</string>
+    <string name="card_empty_body">Conecta un lector de tarjetas USB con la tarjeta insertada, o abre un archivo de tarjeta exportado.</string>
     <string name="card_number">Nº de tarjeta %1$s</string>
     <string name="card_generation_v2">Versión 2</string>
     <string name="card_generation_g1">Generación 1</string>

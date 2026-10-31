@@ -29,8 +29,6 @@ data class CardUiState(
     val card: DriverCard? = null,
     val analysis: ActivityAnalysis.Analysis? = null,
     val error: String? = null,
-    /** null = this device has no NFC chip at all. */
-    val nfcEnabled: Boolean? = null,
 )
 
 @HiltViewModel
@@ -72,9 +70,16 @@ class CardViewModel @Inject constructor(
         _state.value = CardUiState(error = message)
     }
 
-    /** Report the phone's NFC adapter state, checked on every resume. */
-    fun onNfcStateChanged(enabled: Boolean?) {
-        _state.update { it.copy(nfcEnabled = enabled) }
+    /** Download the card through a connected USB CCID reader. */
+    fun readViaUsbReader(usbManager: android.hardware.usb.UsbManager, device: android.hardware.usb.UsbDevice) {
+        viewModelScope.launch(ioDispatcher) {
+            setReading(true)
+            try {
+                onDumpRead(eu.colega.tacho.app.data.usb.UsbCardReader(usbManager, device).readCard())
+            } catch (e: Exception) {
+                onReadError(e.message ?: appContext.getString(eu.colega.tacho.app.R.string.error_generic))
+            }
+        }
     }
 
     fun setReading(isReading: Boolean) {

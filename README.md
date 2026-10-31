@@ -3,8 +3,8 @@
 **Read and understand your EU tachograph card — straight from your phone.**
 
 Tacho Colega is an Android app that downloads the contents of a European
-Union driver tachograph card over NFC and turns it into something a driver
-can actually use: a daily timeline, a month calendar, and driving-time
+Union driver tachograph card through a USB card reader and turns it into
+something a driver can actually use: a daily timeline, a month calendar, and driving-time
 insights checked against Regulation (EC) No 561/2006.
 
 | Card | Timeline | Calendar | Insights |
@@ -18,9 +18,10 @@ insights checked against Regulation (EC) No 561/2006.
 
 ## Features
 
-- **Full card download over NFC** — reads every elementary file of a driver
-  card using the ISO 7816 command set from the tachograph specification
-  (SELECT, READ BINARY, chunked with GET RESPONSE).
+- **Full card download over a USB card reader** — reads every elementary file
+  of a driver card using the ISO 7816 command set from the tachograph
+  specification (SELECT, READ BINARY, chunked with GET RESPONSE), spoken to
+  the reader over the USB CCID protocol through Android USB Host.
 - **Generation 1 and Generation 2 cards** — including the amended
   (Commission Implementing Regulation (EU) 2021/1228) generation 2 layout:
   17-byte Application_Identification, border crossings, load/unload
@@ -42,8 +43,8 @@ Two Gradle modules:
 core/   pure-Kotlin domain: byte readers, APDU protocol, binary parsers
         (C1V1/C2V2 card blocks), EU regulation analysis. No Android deps,
         fully JVM-testable.
-app/    Jetpack Compose UI, Hilt DI, NFC transport (IsoDep), Room-ready
-        data layer.
+app/    Jetpack Compose UI, Hilt DI, USB CCID transport over Android
+        USB Host, dump persistence.
 ```
 
 The binary parsing follows **Regulation (EU) 2016/799** (Appendix 1B card

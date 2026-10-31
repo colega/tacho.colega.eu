@@ -17,6 +17,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import kotlinx.coroutines.flow.StateFlow
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -39,6 +40,8 @@ private fun sharedCardViewModel(): CardViewModel = hiltViewModel(LocalActivity.c
 @Composable
 fun TachoNavGraph(
     cardViewModel: CardViewModel,
+    attachedReader: StateFlow<android.hardware.usb.UsbDevice?>,
+    onReadViaReader: () -> Unit,
     navController: NavHostController = rememberNavController(),
 ) {
     val backStack = navController.currentBackStackEntryAsState()
@@ -84,7 +87,7 @@ fun TachoNavGraph(
             modifier = Modifier.padding(padding),
         ) {
             composable(TachoDestination.CARD.route) { val cardViewModel = sharedCardViewModel()
-                CardScreen(cardViewModel)
+                CardScreen(cardViewModel, attachedReader, onReadViaReader)
             }
             composable(TachoDestination.TIMELINE.route) { val cardViewModel = sharedCardViewModel()
                 TimelineScreen(cardViewModel)

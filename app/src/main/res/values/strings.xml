@@ -9,12 +9,10 @@
 
     <!-- Card overview -->
     <string name="card_title">Driver card</string>
-    <string name="card_reading">Reading card…</string>
-    <string name="nfc_disabled_title">NFC is switched off</string>
-    <string name="nfc_disabled_body">Turn NFC on to read your tachograph card.</string>
-    <string name="nfc_open_settings">Open NFC settings</string>
+    <string name="card_reading">Reading card via reader…</string>
+    <string name="card_read_reader">Read card via reader</string>
     <string name="card_empty_title">No card read yet</string>
-    <string name="card_empty_body">Hold the card against the back of the phone until the read completes.</string>
+    <string name="card_empty_body">Connect a USB card reader with the card inserted, or open an exported card file.</string>
     <string name="card_number">Card number %1$s</string>
     <string name="card_generation_v2">Version 2</string>
     <string name="card_generation_g1">Generation 1</string>

@@ -14,15 +14,10 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 /**
- * High-level driver card source: from an NFC reader or a downloaded dump file.
- * Also serialises dumps to a portable `.tcd` (tachograph card dump) container.
+ * High-level driver card source: from a USB reader or a dump file. Also
+ * serialises dumps to a portable `.tcd` (tachograph card dump) container.
  */
 class CardRepository {
-
-    private companion object {
-        const val LAST_DUMP_FILE = "last-card.tcd"
-    }
-
 
     /** Parse a dump where every elementary file appears contiguously, 2-byte FID prefixed. */
     fun fromConcatenatedDump(bytes: ByteArray): DriverCardDump {
@@ -77,6 +72,13 @@ class CardRepository {
             .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
 
+    /** Import a previously exported dump from a content [Uri]. */
+    fun importFromUri(context: Context, uri: Uri): DriverCardDump {
+        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+            ?: throw TruncatedDataException("could not open dump file")
+        return fromConcatenatedDump(bytes)
+    }
+
     /**
      * Persist the dump so the card survives app restarts; drivers should not
      * lose their data because the process was killed.
@@ -93,18 +95,15 @@ class CardRepository {
             .takeIf { it.exists() }
             ?.let { file -> runCatching { fromConcatenatedDump(file.readBytes()) }.getOrNull() }
 
-    /** Import a previously exported dump from a content [Uri]. */
-    fun importFromUri(context: Context, uri: Uri): DriverCardDump {
-        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-            ?: throw TruncatedDataException("could not open dump file")
-        return fromConcatenatedDump(bytes)
-    }
-
     private fun readU32(bytes: ByteArray, at: Int): Int {
         require(at + 4 <= bytes.size) { "truncated length field" }
         return ((bytes[at].toInt() and 0xFF) shl 24) or
             ((bytes[at + 1].toInt() and 0xFF) shl 16) or
             ((bytes[at + 2].toInt() and 0xFF) shl 8) or
             (bytes[at + 3].toInt() and 0xFF)
+    }
+
+    private companion object {
+        const val LAST_DUMP_FILE = "last-card.tcd"
     }
 }
