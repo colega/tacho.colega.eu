@@ -1,1 +1,15 @@
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+tmp/
 omp-personal
+*.hprof
+.kotlin
+**/build/
