@@ -142,16 +142,31 @@ data class PlaceRecord(
     val gnss: GnssPlaceRecord,
 )
 
-/** GNSSPlaceRecord: authenticated position + time. */
+/**
+ * GNSSPlaceRecord: authenticated position + time. Coordinates use the G2
+ * GeoCoordinates encoding: multiples of 10 of the ±DDMM.M (latitude) and
+ * ±DDDMM.M (longitude) representations, i.e. degrees*1000 + (minutes*10).
+ */
 data class GnssPlaceRecord(
     val timestamp: TimeReal,
     val accuracy: GnssAccuracy,
-    val latitudeNanodeg: Long,
-    val longitudeNanodeg: Long,
+    val latitude: Int,
+    val longitude: Int,
     val odometer: Long? = null,
 ) {
-    val latitudeDeg: Double get() = latitudeNanodeg / 1e9
-    val longitudeDeg: Double get() = longitudeNanodeg / 1e9
+    /** Decimal degrees: sign × (degrees + minutes/60), minutes from the MM.M part. */
+    val latitudeDeg: Double get() = toDegrees(latitude)
+    val longitudeDeg: Double get() = toDegrees(longitude)
+
+    companion object {
+        internal fun toDegrees(value: Int): Double {
+            val absolute = kotlin.math.abs(value)
+            val degrees = absolute / 1000
+            val tenthsOfMinute = absolute % 1000
+            val sign = if (value < 0) -1.0 else 1.0
+            return sign * (degrees + tenthsOfMinute / 600.0)
+        }
+    }
 }
 
 /** SpecificConditionRecord (5 bytes): out-of-scope begin/end. */

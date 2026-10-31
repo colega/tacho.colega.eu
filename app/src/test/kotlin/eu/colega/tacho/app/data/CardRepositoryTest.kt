@@ -1,8 +1,10 @@
 package eu.colega.tacho.app.data
 
 import eu.colega.tacho.core.card.TruncatedDataException
+import eu.colega.tacho.core.tachograph.DriverCardDump
 import eu.colega.tacho.core.tachograph.Layout
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -43,6 +45,23 @@ class CardRepositoryTest {
             repository.fromConcatenatedDump(bytes)
         }
         assertTrue(exception.message!!.contains("0501"))
+    }
+
+    @Test
+    fun `export and import round-trip preserves every file`() {
+        val appId = ByteArray(17) { it.toByte() }
+        val identification = ByteArray(143) { (it % 97).toByte() }
+        val original = DriverCardDump.of(
+            Layout.EF_APPLICATION_IDENTIFICATION to appId,
+            Layout.EF_IDENTIFICATION to identification,
+        )
+        val bytes = repository.toConcatenatedDump(original)
+
+        val restored = repository.fromConcatenatedDump(bytes)
+        assertEquals(appId.toList(), restored.file(Layout.EF_APPLICATION_IDENTIFICATION)!!.toList())
+        assertEquals(identification.toList(), restored.file(Layout.EF_IDENTIFICATION)!!.toList())
+        // Files absent from the dump stay absent after the round trip.
+        assertNull(restored.file(Layout.EF_EVENTS_DATA))
     }
 
     @Test

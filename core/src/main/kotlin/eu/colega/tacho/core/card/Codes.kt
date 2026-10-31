@@ -286,19 +286,18 @@ enum class SoftwareType(val code: Int) {
     }
 }
 
-/** GNSSAccuracy (SIZE(1)): 00h < 5 m, 01h < 10 m, 02h < 20 m, 03h < 50 m, 04h < 100 m, else RFU. */
-enum class GnssAccuracy(val code: Int, val maxMeters: Int) {
-    UNDER_5(0x00, 5),
-    UNDER_10(0x01, 10),
-    UNDER_20(0x02, 20),
-    UNDER_50(0x03, 50),
-    UNDER_100(0x04, 100),
-    RFU(0x05, Int.MAX_VALUE),
-    UNKNOWN(-1, Int.MAX_VALUE);
-
-    companion object {
-        fun from(code: Int): GnssAccuracy = entries.firstOrNull { it.code == code } ?: UNKNOWN
+/**
+ * GNSSAccuracy (SIZE(1)): INTEGER(1..100), a multiple (factor 10) of the X.Y
+ * accuracy in metres reported by the GSA NMEA sentence. A raw value of 25
+ * therefore means 2.5 m.
+ */
+data class GnssAccuracy(val raw: Int) {
+    init {
+        require(raw in 0..255)
     }
+
+    /** Reported accuracy in metres (raw / 10). */
+    val meters: Double get() = raw / 10.0
 }
 
 /** RegionNumeric (SIZE(1)): 00h not available, else laboratory-maintained region codes. */

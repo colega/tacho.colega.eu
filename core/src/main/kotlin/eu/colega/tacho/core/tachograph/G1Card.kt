@@ -79,12 +79,15 @@ object G1Card {
         return PlaceRecord(time, entryType, country, region, odometer, gnss)
     }
 
-    /** GNSSPlaceRecord (11 bytes): timestamp, accuracy, signed lat/lon (nanodegrees). */
+    /**
+     * GNSSPlaceRecord (11 bytes): timestamp, accuracy byte, latitude (3),
+     * longitude (3). Coordinates are the ±DDMM.M×10 integers of GeoCoordinates.
+     */
     fun gnssPlaceRecord(r: ByteReader): GnssPlaceRecord {
         val ts = TimeReal.from(r)
-        val accuracy = GnssAccuracy.from(r.u8())
-        val lat = r.u24().let { if (it >= 0x800000) it - 0x1000000 else it } * 1000L // nanodegrees
-        val lon = r.u24().let { if (it >= 0x800000) it - 0x1000000 else it } * 1000L
+        val accuracy = gnssAccuracy(r)
+        val lat = signed24(r).toInt()
+        val lon = signed24(r).toInt()
         return GnssPlaceRecord(ts, accuracy, lat, lon)
     }
 
@@ -136,12 +139,12 @@ object G1Card {
 
     fun timeReal(r: ByteReader): TimeReal = TimeReal.from(r)
 
-    fun gnssAccuracy(r: ByteReader): GnssAccuracy = GnssAccuracy.from(r.u8())
+    fun gnssAccuracy(r: ByteReader): GnssAccuracy = GnssAccuracy(r.u8())
 
     /** Unsigned 24-bit big-endian. */
     fun u24(r: ByteReader): Long = r.u24().toLong()
 
-    /** Signed 24-bit big-endian (two's complement), used for coordinates in nanodegrees. */
+    /** Signed 24-bit big-endian (two's complement), used for GeoCoordinates. */
     fun signed24(r: ByteReader): Long {
         val v = r.u24()
         return if (v >= 0x800000) (v - 0x1000000).toLong() else v.toLong()

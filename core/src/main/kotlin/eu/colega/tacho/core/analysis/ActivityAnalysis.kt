@@ -188,37 +188,56 @@ object ActivityAnalysis {
         return violations
     }
 
-    /** Check the 4.5h/45min break rule across a day's driving segments. */
+    /**
+     * Check the break rule across a day's driving segments: after 4h30 of
+     * driving, a 45-minute break is required, either as one period of at
+     * least 45 minutes or split into a first part of at least 15 minutes
+     * followed by a second part of at least 30 minutes. The violation is
+     * raised at the moment the driving accumulation passes the limit - a
+     * later break cannot cure it.
+     */
     fun checkBreaks(changes: List<ActivityChange>, date: LocalDate): Violation? {
         if (changes.isEmpty()) return null
         var drivingSinceBreak = 0
-        var lastBreakLength = 0
+        var splitFirstTaken = false
         for (i in changes.indices) {
             val change = changes[i]
             val span = (changes.getOrNull(i + 1)?.minutesOfDay ?: 1440) - change.minutesOfDay
             if (span <= 0) continue
             when (change.activity) {
-                Activity.DRIVING -> drivingSinceBreak += span
-                Activity.BREAK_OR_REST -> {
-                    if (span >= MIN_BREAK_MIN) {
+                Activity.DRIVING -> {
+                    drivingSinceBreak += span
+                    if (drivingSinceBreak > MAX_DRIVING_WITHOUT_BREAK_MIN) {
+                        return Violation(
+                            Violation.Type.BREAK,
+                            date,
+                            "Driving exceeded 4h30 without a qualifying 45-minute break",
+                            drivingSinceBreak - MAX_DRIVING_WITHOUT_BREAK_MIN,
+                        )
+                    }
+                }
+                Activity.BREAK_OR_REST -> when {
+                    span >= MIN_BREAK_MIN -> {
+                        // Full break: resets both the driving and split state.
                         drivingSinceBreak = 0
-                        lastBreakLength = span
-                    } else {
-                        lastBreakLength += span
-                        if (drivingSinceBreak > MAX_DRIVING_WITHOUT_BREAK_MIN) {
-                            // Cannot be cured after the fact: violation.
-                            return Violation(
-                                Violation.Type.BREAK,
-                                date,
-                                "Driving exceeded 4h30 without a qualifying 45-minute break",
-                                drivingSinceBreak - MAX_DRIVING_WITHOUT_BREAK_MIN,
-                            )
-                        }
+                        splitFirstTaken = false
+                    }
+                    span >= SPLIT_BREAK_FIRST_MIN && !splitFirstTaken -> {
+                        // First split part taken: a fresh 4h30 window starts now.
+                        splitFirstTaken = true
+                        drivingSinceBreak = 0
+                    }
+                    span >= SPLIT_BREAK_SECOND_MIN && splitFirstTaken -> {
+                        // Split completed: 15 + 30 in order.
+                        drivingSinceBreak = 0
+                        splitFirstTaken = false
+                    }
+                    else -> {
+                        // Too short to qualify; it neither resets nor cures.
                     }
                 }
                 else -> {
-                    // Work/availability do not reset the driving accumulator
-                    // unless combined with a break; keep it simple.
+                    // Work/availability do not reset the driving accumulator.
                 }
             }
         }
