@@ -14,3 +14,6 @@ omp-personal
 .kotlin
 **/build/
 **/.tooling/
+keystore.properties
+*.jks
+*.keystore

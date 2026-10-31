@@ -1,9 +1,19 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.serialization)
+}
+
+// Release signing is provided by a git-ignored keystore.properties at the repo
+// root (storeFile, storePassword, keyAlias, keyPassword). Without it, release
+// builds fall back to the debug key so CI can still produce artifacts.
+val keystoreProperties = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
 }
 
 android {
@@ -26,6 +36,16 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfig = if (keystoreProperties.isNotEmpty()) {
+                signingConfigs.create("release") {
+                    storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                    storePassword = keystoreProperties.getProperty("storePassword")
+                    keyAlias = keystoreProperties.getProperty("keyAlias")
+                    keyPassword = keystoreProperties.getProperty("keyPassword")
+                }
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 
