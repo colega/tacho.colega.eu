@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "eu.colega.tacho.app"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "eu.colega.tacho"
@@ -37,6 +37,15 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all { test ->
+                test.maxHeapSize = "2g"
+            }
+        }
     }
 }
 

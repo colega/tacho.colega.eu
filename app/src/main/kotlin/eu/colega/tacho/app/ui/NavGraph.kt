@@ -1,0 +1,93 @@
+package eu.colega.tacho.app.ui
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.Insights
+import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import eu.colega.tacho.app.R
+
+/** Bottom navigation destinations. */
+enum class TachoDestination(val route: String) {
+    CARD("card"),
+    TIMELINE("timeline"),
+    INSIGHTS("insights"),
+}
+
+/** One CardViewModel per Activity, shared by all navigation tabs. */
+@Composable
+private fun sharedCardViewModel(): CardViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
+
+@Composable
+fun TachoNavGraph(
+    cardViewModel: CardViewModel,
+    navController: NavHostController = rememberNavController(),
+) {
+    val backStack = navController.currentBackStackEntryAsState()
+    val current = backStack.value?.destination?.route ?: TachoDestination.CARD.route
+
+    Scaffold(bottomBar = {
+        NavigationBar {
+            TachoDestination.entries.forEach { destination ->
+                NavigationBarItem(
+                    selected = current == destination.route,
+                    onClick = {
+                        navController.navigate(destination.route) {
+                            popUpTo(TachoDestination.CARD.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                    icon = {
+                        when (destination) {
+                            TachoDestination.CARD -> Icon(Icons.Filled.CreditCard, null)
+                            TachoDestination.TIMELINE -> Icon(Icons.Filled.Timeline, null)
+                            TachoDestination.INSIGHTS -> Icon(Icons.Filled.Insights, null)
+                        }
+                    },
+                    label = {
+                        Text(
+                            when (destination) {
+                                TachoDestination.CARD -> stringResource(R.string.tab_card)
+                                TachoDestination.TIMELINE -> stringResource(R.string.tab_timeline)
+                                TachoDestination.INSIGHTS -> stringResource(R.string.tab_insights)
+                            }
+                        )
+                    },
+                )
+            }
+        }
+    }) { padding ->
+        NavHost(
+            navController = navController,
+            startDestination = TachoDestination.CARD.route,
+            modifier = Modifier.padding(padding),
+        ) {
+            composable(TachoDestination.CARD.route) { val cardViewModel = sharedCardViewModel()
+                CardScreen(cardViewModel)
+            }
+            composable(TachoDestination.TIMELINE.route) { val cardViewModel = sharedCardViewModel()
+                TimelineScreen(cardViewModel)
+            }
+            composable(TachoDestination.INSIGHTS.route) { val cardViewModel = sharedCardViewModel()
+                InsightsScreen(cardViewModel)
+            }
+        }
+    }
+}
