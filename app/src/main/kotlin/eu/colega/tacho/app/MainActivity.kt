@@ -47,7 +47,8 @@ class MainActivity : ComponentActivity() {
 
     /** A card was tapped: read it off the main-thread intent and parse in the background. */
     private fun handleNfcIntent(intent: Intent?) {
-        val tag = IntentCompat.getParcelableExtra(intent!!, NfcAdapter.EXTRA_TAG, Tag::class.java) ?: return
+        val tag = intent?.let { IntentCompat.getParcelableExtra(it, NfcAdapter.EXTRA_TAG, Tag::class.java) }
+            ?: return
         val isoDep = IsoDep.get(tag) ?: return
         cardViewModel.setReading(true)
         lifecycleScope.launch(Dispatchers.IO) {
