@@ -22,10 +22,8 @@
     <string name="card_session_title">Current session</string>
     <string name="card_session_opened">Opened %1$s</string>
     <string name="card_session_vehicle">Vehicle %1$s %2$s</string>
-    <string name="card_data_title">Raw data</string>
     <string name="card_export_dump">Export card file</string>
     <string name="card_import_dump">Open card file…</string>
-    <string name="card_export_started">Exporting card file…</string>
 
     <!-- Timeline -->
     <string name="timeline_title">Timeline</string>
@@ -52,7 +50,6 @@
     <string name="insights_empty">Read a card to analyse driving times.</string>
     <string name="insights_week_of">Week of %1$s</string>
     <string name="insights_week_driving">%1$s driving</string>
-    <string name="insights_recorded_days">%1$d recorded days</string>
     <string name="insights_no_violations">No rule violations detected</string>
     <string name="insights_violations_title">Violations</string>
     <string name="insights_excess_minutes">+%1$d min</string>

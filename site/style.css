@@ -177,6 +177,15 @@ a { color: inherit; }
   min-height: 420px;
 }
 
+.screen.screen-photo { padding: 0; overflow: hidden; }
+
+.screen.screen-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 .screen .screen-title {
   font-size: 0.72rem;
   font-weight: 700;

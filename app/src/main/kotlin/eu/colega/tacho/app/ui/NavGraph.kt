@@ -14,7 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.activity.ComponentActivity
-import androidx.compose.ui.platform.LocalContext
+import androidx.activity.compose.LocalActivity
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -34,7 +34,7 @@ enum class TachoDestination(val route: String) {
 
 /** One CardViewModel per Activity, shared by all navigation tabs. */
 @Composable
-private fun sharedCardViewModel(): CardViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
+private fun sharedCardViewModel(): CardViewModel = hiltViewModel(LocalActivity.current as ComponentActivity)
 
 @Composable
 fun TachoNavGraph(

@@ -23,6 +23,7 @@ android {
     defaultConfig {
         applicationId = "eu.colega.tacho"
         minSdk = 26
+        // Robolectric 4.16 rejects targetSdk > 36 in unit tests; bump together with Robolectric.
         targetSdk = 36
         versionCode = 1
         versionName = "1.0.0"
@@ -57,6 +58,11 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    lint {
+        // targetSdk tracks Robolectric's supported SDK (see defaultConfig above).
+        disable += setOf("OldTargetApi", "ObsoleteSdkInt") // -v26 folder is the conventional adaptive-icon layout
     }
 
     testOptions {

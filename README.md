@@ -7,14 +7,14 @@ Union driver tachograph card over NFC and turns it into something a driver
 can actually use: a daily timeline, a month calendar, and driving-time
 insights checked against Regulation (EC) No 561/2006.
 
-<table>
-  <tr>
-    <td><strong>Card</strong> — holder, validity, current session, export.</td>
-    <td><strong>Timeline</strong> — daily activity as a colour-coded 24 h bar.</td>
-    <td><strong>Calendar</strong> — month view with driving intensity per day.</td>
-    <td><strong>Insights</strong> — weekly totals and rule violations.</td>
-  </tr>
-</table>
+| Card | Timeline | Calendar | Insights |
+|---|---|---|---|
+| ![](docs/screenshots/card.png) | ![](docs/screenshots/timeline.png) | ![](docs/screenshots/calendar.png) | ![](docs/screenshots/insights.png) |
+
+- **Card** — holder, validity, current session, file export and import.
+- **Timeline** — daily activity as a colour-coded 24 h bar.
+- **Calendar** — month view with driving intensity per day.
+- **Insights** — weekly totals and EU rule violations.
 
 ## Features
 
