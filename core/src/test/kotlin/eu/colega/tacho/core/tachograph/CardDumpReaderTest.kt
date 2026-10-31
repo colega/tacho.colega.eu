@@ -20,6 +20,7 @@ class CardDumpReaderTest {
         var selectedFile: Int? = null
         var rejectAid = false
         var secureFile: Int? = null
+        var failFromOffset: Int? = null
 
         override fun invoke(command: ByteArray): ByteArray {
             return when (command[1].toInt() and 0xFF) {
@@ -54,6 +55,9 @@ class CardDumpReaderTest {
             val offset = ((command[2].toInt() and 0xFF) shl 8) or (command[3].toInt() and 0xFF)
             val requested = command[4].toInt() and 0xFF
             if (secureFile == fid) return status(Apdu.SW_SECURITY_NOT_SATISFIED)
+            if (failFromOffset != null && offset >= failFromOffset!!) {
+                return status(Apdu.SW_SECURITY_NOT_SATISFIED)
+            }
             val data = files.getValue(fid)
             if (offset >= data.size) return status(Apdu.SW_EOF_REACHED)
             val end = minOf(offset + requested, data.size)
@@ -100,15 +104,29 @@ class CardDumpReaderTest {
     }
 
     @Test
-    fun `a security-blocked read aborts instead of returning a truncated file`() {
+    fun `a security-blocked file with no data received is skipped`() {
         val card = ScriptedCard().apply {
             files[Layout.EF_APPLICATION_IDENTIFICATION] = sampleFile(17, 1)
             files[Layout.EF_EVENTS_DATA] = sampleFile(96, 2)
-            secureFile = Layout.EF_EVENTS_DATA
+            secureFile = Layout.EF_EVENTS_DATA // like VU_Configuration (0540)
+        }
+        val dump = CardDumpReader(card).readDriverCard()
+        assertNull(dump.file(Layout.EF_EVENTS_DATA))
+        // The other files still come through.
+        assertTrue(dump.file(Layout.EF_APPLICATION_IDENTIFICATION)!!.contentEquals(sampleFile(17, 1)))
+    }
+
+    @Test
+    fun `a mid-file security failure aborts instead of returning a truncated file`() {
+        val card = ScriptedCard().apply {
+            files[Layout.EF_APPLICATION_IDENTIFICATION] = sampleFile(17, 1)
+            files[Layout.EF_EVENTS_DATA] = sampleFile(300, 2)
+            failFromOffset = 255 // first chunk OK (255 bytes), second chunk refuses
         }
         val exception = runCatching { CardDumpReader(card).readDriverCard() }.exceptionOrNull()
         assertTrue(exception is IllegalStateException)
         assertTrue(exception!!.message!!.contains("0502"))
+        assertTrue(exception.message!!.contains("offset 255"))
     }
 
     @Test

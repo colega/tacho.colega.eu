@@ -38,7 +38,14 @@ class CardDumpReader(
         throw IllegalStateException("no tachograph application found on card")
     }
 
-    /** Read one EF fully; returns null if the file does not exist on this card. */
+    /**
+     * Read one EF fully. Returns null when the file does not exist or the
+     * card refuses the read outright: VU_Configuration (0540) for example is
+     * protected by secure messaging (SC5) that a plain reader cannot satisfy,
+     * and the spec expects it to be skipped. A security failure after data
+     * was already received is different - that means a truncated file, so it
+     * aborts.
+     */
     private fun readFile(fid: Int): ByteArray? {
         val select = ApduResponse.from(transceiver.transceive(Apdu.selectFile(fid)))
         if (select.statusWord == Apdu.SW_FILE_NOT_FOUND) return null
@@ -56,10 +63,14 @@ class CardDumpReader(
                 }
                 response.statusWord == Apdu.SW_EOF_REACHED -> break // file fully read
                 response.statusWord and 0xFF00 == 0x6200 -> break // '62xx' warning: data still valid
-                response.statusWord and 0xFF00 == 0x6900 ->
+                response.statusWord and 0xFF00 == 0x6900 -> {
+                    // No data received: the card wants secure messaging for
+                    // this file (e.g. VU_Configuration 0540); skip it.
+                    if (out.size() == 0) return null
                     throw IllegalStateException(
-                        "card refused read of EF %04X (SW %04X)".format(fid, response.statusWord)
+                        "card refused read of EF %04X at offset $offset (SW %04X)".format(fid, response.statusWord)
                     )
+                }
                 else -> break // unknown condition: keep what we have
             }
         }
