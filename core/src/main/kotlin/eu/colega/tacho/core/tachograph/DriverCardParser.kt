@@ -58,11 +58,19 @@ object DriverCardParser {
         } ?: emptyList()
 
         val vehicles = dump.file(Layout.EF_VEHICLES_USED)?.let {
-            G1Card.vehicles(ByteReader(it))
+            if (generation == CardStructureVersion.GENERATION_1) {
+                G1Card.vehiclesG1(ByteReader(it))
+            } else {
+                G1Card.vehiclesG2(ByteReader(it))
+            }
         } ?: emptyList()
 
         val places = dump.file(Layout.EF_PLACES)?.let {
-            G1Card.places(ByteReader(it))
+            if (generation == CardStructureVersion.GENERATION_1) {
+                G1Card.placesG1(ByteReader(it))
+            } else {
+                G1Card.placesG2(ByteReader(it))
+            }
         } ?: emptyList()
 
         val currentUsage = dump.file(Layout.EF_CURRENT_USAGE)?.let {
@@ -70,7 +78,11 @@ object DriverCardParser {
         }
 
         val specificConditions = dump.file(Layout.EF_SPECIFIC_CONDITIONS)?.let {
-            G1Card.specificConditions(ByteReader(it))
+            if (generation == CardStructureVersion.GENERATION_1) {
+                G1Card.specificConditionsG1(ByteReader(it))
+            } else {
+                G1Card.specificConditionsG2(ByteReader(it))
+            }
         } ?: emptyList()
 
         val vehicleUnits = dump.file(Layout.EF_VEHICLE_UNITS_USED)?.let {

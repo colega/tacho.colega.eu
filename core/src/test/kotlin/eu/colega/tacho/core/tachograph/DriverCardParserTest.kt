@@ -4,6 +4,7 @@ import eu.colega.tacho.core.card.CardStructureVersion
 import eu.colega.tacho.core.card.EquipmentType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayOutputStream
@@ -208,6 +209,75 @@ class DriverCardParserTest {
         val card = DriverCardParser.parse(dump)
         assertEquals(3, card.activity.size)
         assertEquals(listOf(2000L, 3000L, 4000L), card.activity.map { it.date.seconds })
+    }
+
+    @Test
+    fun `parses a full generation 1 dump with G1 record sizes`() {
+        // G1 events: 6 sets x n1(6) x 24 = 864 bytes; first record real, rest empty.
+        val events = eventRecord(0x07, 1000, 2000, 0x01, "B-XY 999") +
+            ByteArray(864 - Layout.EVENT_RECORD) // empty slots
+        // G1 vehicles: pointer 2 + 84 x 31 = 2606 bytes.
+        val g1Vehicle = ByteArrayOutputStream().apply {
+            writeU24(this, 500)
+            writeU24(this, 900)
+            writeU32(this, 0x6795C000)
+            writeU32(this, 0x6795C000)
+            write(0x01) // Austria
+            writePadded(this, "W-123 AB".toByteArray(Charsets.US_ASCII), 14)
+            writeU16(this, 3) // vuDataBlockCounter
+            // no VIN in G1
+        }.toByteArray()
+        assertEquals(31, g1Vehicle.size)
+        val vehicles = byteArrayOf(0x00, 0x00) + ByteArray(83 * 31) { g1Vehicle[it % 31] } + g1Vehicle
+        assertEquals(2 + 84 * G1Card.VEHICLE_RECORD_G1, vehicles.size)
+        // G1 places: pointer 1 + 84 x 10 = 841 bytes.
+        val g1Place = ByteArrayOutputStream().apply {
+            writeU32(this, 0x6795C000)
+            write(0x00) // start of work period
+            write(0x1E) // Spain
+            write(0x01) // region
+            writeU24(this, 42_000)
+        }.toByteArray()
+        assertEquals(10, g1Place.size)
+        val places = byteArrayOf(0x2A.toByte()) + ByteArray(83 * 10) { g1Place[it % 10] } + g1Place
+        assertEquals(1 + 84 * G1Card.PLACE_RECORD_G1, places.size)
+        // G1 specific conditions: 56 x 5 = 280, no pointer.
+        val conditions = eventRecord(0, 0, 0, 0, "").slice(0 until 24).toByteArray() // filler
+        val specific = ByteArray(280) { 0x00 }
+
+        val dump = DriverCardDump.of(
+            Layout.EF_APPLICATION_IDENTIFICATION to g1ApplicationId(),
+            Layout.EF_EVENTS_DATA to events,
+            Layout.EF_VEHICLES_USED to vehicles,
+            Layout.EF_PLACES to places,
+            Layout.EF_SPECIFIC_CONDITIONS to specific,
+        )
+        val card = DriverCardParser.parse(dump)
+        assertEquals(CardStructureVersion.GENERATION_1, card.generation)
+        assertEquals(36, card.events.size)
+        assertEquals("B-XY 999", card.events.first().vehicle.number)
+        assertEquals(84, card.vehicles.size)
+        assertEquals("W-123 AB", card.vehicles.first().vehicle.number)
+        assertEquals("", card.vehicles.first().vin)
+        assertEquals(400, card.vehicles.first().odometerDriven)
+        assertEquals(84, card.places.size)
+        assertEquals(42_000, card.places.first().odometer)
+        assertNull(card.places.first().gnss)
+        assertEquals(56, card.specificConditions.size)
+    }
+
+    /** G1 AppId: 10 bytes, 1-byte place count, no GNSS/VU counters. */
+    private fun g1ApplicationId(): ByteArray {
+        val b = ByteArrayOutputStream()
+        b.write(0x00) // driver card
+        b.write(0x00); b.write(0x00) // generation 1
+        b.write(6) // noOfEventsPerType
+        b.write(12) // noOfFaultsPerType
+        b.write(0x15); b.write(0xB8) // activityStructureLength 5544
+        b.write(0x00); b.write(84) // noOfCardVehicleRecords
+        b.write(84) // noOfCardPlaceRecords (1 byte)
+        assertEquals(Layout.APP_ID_G1, b.size())
+        return b.toByteArray()
     }
 
     // ---- generation 1 -----------------------------------------------------

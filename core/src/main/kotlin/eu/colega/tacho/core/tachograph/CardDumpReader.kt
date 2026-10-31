@@ -96,7 +96,10 @@ class CardDumpReader(
             Layout.EF_VU_CONFIGURATION,
         )
 
-        /** Generation 1 driver card EF list. */
+        /**
+         * Generation 1 driver card EF list (TCS_148): no V2 files, no
+         * VehicleUnits_Used (0523) and no GNSS_Places (0524).
+         */
         val G1_EF_IDS = listOf(
             Layout.EF_APPLICATION_IDENTIFICATION,
             Layout.EF_CARD_CERTIFICATE,
@@ -112,7 +115,6 @@ class CardDumpReader(
             Layout.EF_CURRENT_USAGE,
             Layout.EF_CONTROL_ACTIVITY_DATA,
             Layout.EF_SPECIFIC_CONDITIONS,
-            Layout.EF_GNSS_PLACES,
         )
     }
 }

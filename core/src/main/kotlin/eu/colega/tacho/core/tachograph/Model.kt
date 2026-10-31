@@ -132,14 +132,17 @@ data class ActivityDay(
     val activityChanges: List<ActivityChange>,
 )
 
-/** PlaceRecord (21 bytes): where a daily work period started/ended. */
+/**
+ * PlaceRecord: where a daily work period started/ended. 21 bytes in G2
+ * (with the authenticated GNSS position); 10 bytes in G1 (gnss = null).
+ */
 data class PlaceRecord(
     val time: TimeReal,
     val entryType: EntryTypeDailyWorkPeriod,
     val country: Nation,
     val region: RegionNumeric,
     val odometer: Long,
-    val gnss: GnssPlaceRecord,
+    val gnss: GnssPlaceRecord?,
 )
 
 /**

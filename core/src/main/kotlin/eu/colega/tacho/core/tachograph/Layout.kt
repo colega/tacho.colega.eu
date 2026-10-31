@@ -131,17 +131,19 @@ object Layout {
     const val ACTIVITY_CHANGE_INFO = 2 // 'scpaattttttttttt'
     const val ACTIVITY_DAILY_HEADER = 12 // prev/cur lengths 2+2, date 4, presence 2, distance 2
 
-    /** Generation 1 driver card sizes (TCS_150, unchanged by the amendment). */
+    /**
+     * Generation 1 driver card sizes (TCS_150/TCS_151, unchanged by the
+     * amendment). G1 records are smaller: 31-byte vehicles (no VIN),
+     * 10-byte places (no GNSS), fixed 56 specific-condition records.
+     */
     const val APP_ID_G1 = 10
     const val CERT_G1 = 194
-    val EVENTS_DATA_G1 = 1584..3168
-    val FAULTS_DATA_G1 = 576..1152
+    val EVENTS_DATA_G1 = 864..1728 // 6 sets x n1(6..12) x CardEventRecord(24)
+    val FAULTS_DATA_G1 = 576..1152 // 2 sets x n2(12..24) x CardFaultRecord(24)
     val DRIVER_ACTIVITY_G1 = 5548..13780
-    val VEHICLES_USED_G1 = 4034..9602
-    val PLACES_G1 = 1766..2354
-    val SPECIFIC_CONDITIONS_G1 = 282..562
-    val VEHICLE_UNITS_G1 = 842..2002
-    val GNSS_PLACES_G1 = 3782..5042
+    val VEHICLES_USED_G1 = 2606..6202 // pointer 2 + n3(84..200) x VehicleRecord(31)
+    val PLACES_G1 = 841..1121 // pointer 1 + n4(84..112) x PlaceRecord(10)
+    val SPECIFIC_CONDITIONS_G1 = 280..280 // 56 x SpecificConditionRecord(5), no pointer
 }
 
 /**

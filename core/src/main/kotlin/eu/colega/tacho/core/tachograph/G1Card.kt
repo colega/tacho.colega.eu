@@ -56,26 +56,26 @@ object G1Card {
         return VehicleRegistration(nation, number)
     }
 
-    /** CardVehicleRecord (48 bytes). */
-    fun vehicleRecord(r: ByteReader): VehicleUse {
+    /** CardVehicleRecord: 48 bytes in G2 (with VIN), 31 bytes in G1. */
+    fun vehicleRecord(r: ByteReader, withVin: Boolean = true): VehicleUse {
         val odometerBegin = r.u24().toLong()
         val odometerEnd = r.u24().toLong()
         val firstUse = TimeReal.from(r)
         val lastUse = TimeReal.from(r)
         val vehicle = vehicleRegistration(r)
         val vuDataBlockCounter = r.u16()
-        val vin = r.ascii(17)
+        val vin = if (withVin) r.ascii(17) else ""
         return VehicleUse(odometerBegin, odometerEnd, firstUse, lastUse, vehicle, vuDataBlockCounter, vin)
     }
 
-    /** PlaceRecord (21 bytes): entry info + GNSS place record. */
-    fun placeRecord(r: ByteReader): PlaceRecord {
+    /** PlaceRecord: 21 bytes in G2 (with GNSS position), 10 bytes in G1. */
+    fun placeRecord(r: ByteReader, withGnss: Boolean = true): PlaceRecord {
         val time = TimeReal.from(r)
         val entryType = EntryTypeDailyWorkPeriod.from(r.u8())
         val country = Nation.from(r.u8())
         val region = RegionNumeric(r.u8())
         val odometer = r.u24().toLong()
-        val gnss = gnssPlaceRecord(r)
+        val gnss = if (withGnss) gnssPlaceRecord(r) else null
         return PlaceRecord(time, entryType, country, region, odometer, gnss)
     }
 
@@ -230,32 +230,61 @@ object G1Card {
         return ActivityChange(minutes, slot, crew, cardInserted, Activity.from(activityCode))
     }
 
-    /** EF Vehicles_Used payload: pointer + n 48-byte records. */
-    fun vehicles(r: ByteReader): List<VehicleUse> {
+    /** EF Vehicles_Used payload: 2-byte pointer + n 48-byte records (G2). */
+    fun vehicles(r: ByteReader): List<VehicleUse> = vehiclesG2(r)
+
+    fun vehiclesG2(r: ByteReader): List<VehicleUse> {
         r.skip(2) // vehiclePointerNewestRecord
         return buildList {
-            while (r.remaining >= VEHICLE_RECORD) add(vehicleRecord(r))
+            while (r.remaining >= VEHICLE_RECORD) add(vehicleRecord(r, withVin = true))
+        }
+    }
+
+    /** G1: 2-byte pointer + n 31-byte records (no VIN). */
+    fun vehiclesG1(r: ByteReader): List<VehicleUse> {
+        r.skip(2) // vehiclePointerNewestRecord
+        return buildList {
+            while (r.remaining >= VEHICLE_RECORD_G1) add(vehicleRecord(r, withVin = false))
         }
     }
 
     private const val VEHICLE_RECORD = 48
+    const val VEHICLE_RECORD_G1 = 31
 
-    /** EF Places payload: pointer + n 21-byte records. */
-    fun places(r: ByteReader): List<PlaceRecord> {
+    /** EF Places payload (G2): 2-byte pointer + n 21-byte records. */
+    fun places(r: ByteReader): List<PlaceRecord> = placesG2(r)
+
+    fun placesG2(r: ByteReader): List<PlaceRecord> {
         r.skip(2) // placePointerNewestRecord
         return buildList {
-            while (r.remaining >= PLACE_RECORD) add(placeRecord(r))
+            while (r.remaining >= PLACE_RECORD) add(placeRecord(r, withGnss = true))
+        }
+    }
+
+    /** G1: 1-byte pointer + n 10-byte records (no GNSS). */
+    fun placesG1(r: ByteReader): List<PlaceRecord> {
+        r.skip(1) // placePointerNewestRecord (single byte in G1)
+        return buildList {
+            while (r.remaining >= PLACE_RECORD_G1) add(placeRecord(r, withGnss = false))
         }
     }
 
     private const val PLACE_RECORD = 21
+    const val PLACE_RECORD_G1 = 10
 
-    /** EF Specific_Conditions payload: pointer + n 5-byte records. */
-    fun specificConditions(r: ByteReader): List<SpecificConditionRecord> {
+    /** EF Specific_Conditions payload (G2): pointer + n 5-byte records. */
+    fun specificConditions(r: ByteReader): List<SpecificConditionRecord> = specificConditionsG2(r)
+
+    fun specificConditionsG2(r: ByteReader): List<SpecificConditionRecord> {
         r.skip(2) // conditionPointerNewestRecord
         return buildList {
             while (r.remaining >= 5) add(specificConditionRecord(r))
         }
+    }
+
+    /** G1: 280 fixed bytes of 5-byte records, no pointer. */
+    fun specificConditionsG1(r: ByteReader): List<SpecificConditionRecord> = buildList {
+        while (r.remaining >= 5) add(specificConditionRecord(r))
     }
 
     /** EF VehicleUnits_Used payload: pointer + n 10-byte records. */
