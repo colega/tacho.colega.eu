@@ -88,4 +88,6 @@ and the 1024×500 feature graphic.
 
 ## License
 
-Proprietary — © colega. All rights reserved.
+Tacho Colega is free software: you can redistribute it and/or modify it under
+the terms of the [GNU General Public License v3](LICENSE) as published by the
+Free Software Foundation.
