@@ -15,9 +15,17 @@ class UsbCardReader(private val usbManager: UsbManager, private val device: UsbD
     fun readCard(): DriverCardDump {
         val transceiver = UsbCcidTransceiver.open(usbManager, device)
         try {
-            val atr = transceiver.powerOn()
-            require(atr.isNotEmpty()) { "reader returned no ATR: is the card inserted?" }
-            return CardDumpReader(transceiver).readDriverCard()
+            transceiver.powerOn()
+            return try {
+                CardDumpReader(transceiver).readDriverCard()
+            } catch (first: Exception) {
+                // A failed session (for example an interrupted read) can leave
+                // state on the card; a power cycle brings it back to a clean
+                // state, so try the complete download exactly once more.
+                transceiver.powerOff()
+                transceiver.powerOn()
+                CardDumpReader(transceiver).readDriverCard()
+            }
         } finally {
             transceiver.close()
         }

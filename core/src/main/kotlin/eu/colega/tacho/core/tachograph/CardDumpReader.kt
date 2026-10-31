@@ -39,17 +39,19 @@ class CardDumpReader(
     }
 
     /**
-     * Read one EF fully. Returns null when the file does not exist or the
-     * card refuses the read outright: VU_Configuration (0540) for example is
-     * protected by secure messaging (SC5) that a plain reader cannot satisfy,
-     * and the spec expects it to be skipped. A security failure after data
-     * was already received is different - that means a truncated file, so it
-     * aborts.
+     * Read one EF fully. Returns null when the file does not exist (6A82 -
+     * the V2-only files on version 1 cards) or when the card refuses the
+     * read of the secure-messaging-only VU_Configuration file (0540, SC5).
+     * Every other failure aborts with the status word in the message.
      */
     private fun readFile(fid: Int): ByteArray? {
         val select = ApduResponse.from(transceiver.transceive(Apdu.selectFile(fid)))
         if (select.statusWord == Apdu.SW_FILE_NOT_FOUND) return null
-        if (!select.isOk) return null
+        if (!select.isOk) {
+            throw IllegalStateException(
+                "select of EF %04X failed (SW %04X)".format(fid, select.statusWord)
+            )
+        }
         val out = java.io.ByteArrayOutputStream()
         var offset = 0
         while (true) {
@@ -64,9 +66,10 @@ class CardDumpReader(
                 response.statusWord == Apdu.SW_EOF_REACHED -> break // file fully read
                 response.statusWord and 0xFF00 == 0x6200 -> break // '62xx' warning: data still valid
                 response.statusWord and 0xFF00 == 0x6900 -> {
-                    // No data received: the card wants secure messaging for
-                    // this file (e.g. VU_Configuration 0540); skip it.
-                    if (out.size() == 0) return null
+                    // VU_Configuration (0540) is readable only with secure
+                    // messaging (SC5); the spec expects a plain reader to
+                    // skip it. Any other file must read plainly.
+                    if (fid == Layout.EF_VU_CONFIGURATION && out.size() == 0) return null
                     throw IllegalStateException(
                         "card refused read of EF %04X at offset $offset (SW %04X)".format(fid, response.statusWord)
                     )

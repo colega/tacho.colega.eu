@@ -104,16 +104,28 @@ class CardDumpReaderTest {
     }
 
     @Test
-    fun `a security-blocked file with no data received is skipped`() {
+    fun `the secure-messaging-only VU configuration file is skipped`() {
         val card = ScriptedCard().apply {
             files[Layout.EF_APPLICATION_IDENTIFICATION] = sampleFile(17, 1)
-            files[Layout.EF_EVENTS_DATA] = sampleFile(96, 2)
-            secureFile = Layout.EF_EVENTS_DATA // like VU_Configuration (0540)
+            files[Layout.EF_VU_CONFIGURATION] = sampleFile(3072, 2)
+            secureFile = Layout.EF_VU_CONFIGURATION // SC5: readable only with secure messaging
         }
         val dump = CardDumpReader(card).readDriverCard()
-        assertNull(dump.file(Layout.EF_EVENTS_DATA))
+        assertNull(dump.file(Layout.EF_VU_CONFIGURATION))
         // The other files still come through.
         assertTrue(dump.file(Layout.EF_APPLICATION_IDENTIFICATION)!!.contentEquals(sampleFile(17, 1)))
+    }
+
+    @Test
+    fun `a security failure on any other file aborts with the status word`() {
+        val card = ScriptedCard().apply {
+            files[Layout.EF_APPLICATION_IDENTIFICATION] = sampleFile(17, 1)
+            secureFile = Layout.EF_APPLICATION_IDENTIFICATION
+        }
+        val exception = runCatching { CardDumpReader(card).readDriverCard() }.exceptionOrNull()
+        assertTrue(exception is IllegalStateException)
+        assertTrue(exception!!.message!!.contains("0501"))
+        assertTrue(exception.message!!.contains("6982"))
     }
 
     @Test
