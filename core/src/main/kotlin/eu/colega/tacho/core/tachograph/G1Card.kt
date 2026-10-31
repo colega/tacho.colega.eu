@@ -212,6 +212,7 @@ object G1Card {
             days += ActivityDay(index, date, presence, distance, changes)
             index++
             offset += recordLength
+            if (offset >= buffer.size) offset = 0 // ring wrap: newest record lives at the start
         }
         return days
     }

@@ -3,6 +3,7 @@ package eu.colega.tacho.core.tachograph
 import eu.colega.tacho.core.card.CardStructureVersion
 import eu.colega.tacho.core.card.EquipmentType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayOutputStream
@@ -179,7 +180,64 @@ class DriverCardParserTest {
         assertEquals("WVWZZZ1KZAW123456", vehicle.vin)
     }
 
+    @Test
+    fun `recovers all days when the activity ring buffer wraps`() {
+        // Three day records; the newest (day 4) overwrote the oldest at the
+        // start of the string, so the chain is day2 -> day3 -> day4(wrapped).
+        fun record(prev: Int, date: Long, changes: Int): ByteArray {
+            val body = ByteArray(changes * 2) { 0x18 } // driving changes
+            val b = ByteArrayOutputStream()
+            writeU16(b, prev)
+            writeU16(b, 12 + body.size)
+            writeU32(b, date)
+            writeU16(b, 1) // presence counter
+            writeU16(b, 100) // day distance
+            b.write(body)
+            return b.toByteArray()
+        }
+        val day1 = record(0, 1000, 10) // overwritten
+        val day2 = record(0, 2000, 10) // oldest survivor, previous length reset to 0
+        val day3 = record(12 + 20, 3000, 10)
+        val day4 = record(12 + 20, 4000, 10) // written at offset 0, wrapping after day3
+        val buffer = day4 + day2 + day3
+
+        val dump = DriverCardDump.of(
+            Layout.EF_APPLICATION_IDENTIFICATION to g2ApplicationId(),
+            Layout.EF_DRIVER_ACTIVITY_DATA to (byteArrayOf(0, 0, 0, 0) + buffer),
+        )
+        val card = DriverCardParser.parse(dump)
+        assertEquals(3, card.activity.size)
+        assertEquals(listOf(2000L, 3000L, 4000L), card.activity.map { it.date.seconds })
+    }
+
+    // ---- generation 1 -----------------------------------------------------
+
+    @Test
+    fun `parses generation 1 card with 10-byte application identification`() {
+        val b = ByteArrayOutputStream()
+        b.write(0x00) // driver card
+        b.write(0x00); b.write(0x00) // generation 1: {00 00}
+        b.write(6) // noOfEventsPerType (G1 minimum)
+        b.write(12) // noOfFaultsPerType (G1 minimum)
+        b.write(0x15); b.write(0xB8) // activityStructureLength 5544
+        b.write(0x00); b.write(84) // noOfCardVehicleRecords (G1 minimum)
+        b.write(84) // noOfCardPlaceRecords (1 byte in G1!)
+        assertEquals(Layout.APP_ID_G1, b.size())
+
+        val dump = DriverCardDump.of(Layout.EF_APPLICATION_IDENTIFICATION to b.toByteArray())
+        val card = DriverCardParser.parse(dump)
+        assertEquals(CardStructureVersion.GENERATION_1, card.generation)
+        assertEquals(EquipmentType.DRIVER, card.applicationId.typeOfTachographCardId)
+        assertEquals(0, card.applicationId.structureVersionByte)
+        assertFalse(card.isV2)
+        assertEquals(84, card.applicationId.noOfCardVehicleRecords)
+        assertEquals(84, card.applicationId.noOfCardPlaceRecords)
+        assertEquals(0, card.applicationId.noOfGnssAdRecords) // not present in G1
+    }
+
     // ---- helpers ----------------------------------------------------------
+
+    private fun u16be(v: Int) = byteArrayOf(((v shr 8) and 0xFF).toByte(), (v and 0xFF).toByte())
 
     private fun writeU16(b: ByteArrayOutputStream, v: Int) {
         b.write((v shr 8) and 0xFF)
