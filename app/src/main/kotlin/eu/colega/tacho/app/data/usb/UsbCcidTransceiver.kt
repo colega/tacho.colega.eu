@@ -27,13 +27,17 @@ class UsbCcidTransceiver(
 
     /** Power up the card and return its ATR. */
     fun powerOn(): ByteArray {
-        val slot = 0
-        val response = exchange(CcidMessages.powerOn(slot, nextSequence()), "ICC power on")
+        val response = exchange(CcidMessages.powerOn(SLOT, nextSequence()), "ICC power on")
         return response.payload
     }
 
+    /** Power the card down; brings it back to a clean state between sessions. */
+    fun powerOff() {
+        exchange(CcidMessages.powerOff(SLOT, nextSequence()), "ICC power off")
+    }
+
     override fun transceive(command: ByteArray): ByteArray {
-        val response = exchange(CcidMessages.xfrBlock(command, 0, nextSequence()), "APDU exchange")
+        val response = exchange(CcidMessages.xfrBlock(command, SLOT, nextSequence()), "APDU exchange")
         return response.payload
     }
 
@@ -42,7 +46,7 @@ class UsbCcidTransceiver(
         connection.close()
     }
 
-    private fun nextSequence(): Int = (sequence++ and 0xFF)
+    private fun nextSequence(): Int = sequence++ and 0xFF
 
     private fun exchange(frame: ByteArray, what: String): CcidResponse {
         val sent = connection.bulkTransfer(bulkOut, frame, frame.size, TIMEOUT_MS)
@@ -77,6 +81,7 @@ class UsbCcidTransceiver(
     companion object {
         private const val TIMEOUT_MS = 10_000
         private const val MAX_RESPONSE_BYTES = 4096
+        private const val SLOT = 0
 
         /**
          * Readers announce themselves as class 0x0B (ChipCard/SmartCard); some
@@ -90,14 +95,13 @@ class UsbCcidTransceiver(
                     (iface.endpointCount >= 2 && hasBulkPair(iface))
             }
 
-        private fun hasBulkPair(iface: android.hardware.usb.UsbInterface): Boolean {
+        private fun hasBulkPair(iface: UsbInterface): Boolean {
             var bulkIn = false
             var bulkOut = false
             for (i in 0 until iface.endpointCount) {
-                when (iface.getEndpoint(i).type) {
-                    UsbConstants.USB_ENDPOINT_XFER_BULK -> {
-                        if (iface.getEndpoint(i).direction == UsbConstants.USB_DIR_IN) bulkIn = true else bulkOut = true
-                    }
+                val endpoint = iface.getEndpoint(i)
+                if (endpoint.type == UsbConstants.USB_ENDPOINT_XFER_BULK) {
+                    if (endpoint.direction == UsbConstants.USB_DIR_IN) bulkIn = true else bulkOut = true
                 }
             }
             return bulkIn && bulkOut
@@ -112,10 +116,13 @@ class UsbCcidTransceiver(
                 .map { device.getInterface(it) }
                 .first { it.interfaceClass == UsbConstants.USB_CLASS_CSCID || hasBulkPair(it) }
             require(connection.claimInterface(iface, true)) { "could not claim reader interface" }
-            val bulkOut = (0 until iface.endpointCount).map { iface.getEndpoint(it) }
-                .first { it.direction == UsbConstants.USB_DIR_OUT && it.type == UsbConstants.USB_ENDPOINT_XFER_BULK }
-            val bulkIn = (0 until iface.endpointCount).map { iface.getEndpoint(it) }
-                .first { it.direction == UsbConstants.USB_DIR_IN && it.type == UsbConstants.USB_ENDPOINT_XFER_BULK }
+            val endpoints = (0 until iface.endpointCount).map { iface.getEndpoint(it) }
+            val bulkOut = endpoints.first {
+                it.direction == UsbConstants.USB_DIR_OUT && it.type == UsbConstants.USB_ENDPOINT_XFER_BULK
+            }
+            val bulkIn = endpoints.first {
+                it.direction == UsbConstants.USB_DIR_IN && it.type == UsbConstants.USB_ENDPOINT_XFER_BULK
+            }
             return UsbCcidTransceiver(connection, iface, bulkOut, bulkIn)
         }
     }
