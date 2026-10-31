@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="eu.colega.tacho.core.tachograph.DriverCardParserTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-31T14:34:33.560Z" hostname="macbookpro-m3-black.colega.dev" time="0.016">
+  <properties/>
+  <testcase name="parses amended generation 2 application identification" classname="eu.colega.tacho.core.tachograph.DriverCardParserTest" time="0.006"/>
+  <testcase name="parses event records from fixed slots" classname="eu.colega.tacho.core.tachograph.DriverCardParserTest" time="0.006"/>
+  <testcase name="parses identification and holder" classname="eu.colega.tacho.core.tachograph.DriverCardParserTest" time="0.0"/>
+  <testcase name="parses daily activity with change records" classname="eu.colega.tacho.core.tachograph.DriverCardParserTest" time="0.001"/>
+  <testcase name="parses vehicle records" classname="eu.colega.tacho.core.tachograph.DriverCardParserTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
