@@ -21,10 +21,17 @@ class UsbCardReader(private val usbManager: UsbManager, private val device: UsbD
             } catch (first: Exception) {
                 // A failed session (for example an interrupted read) can leave
                 // state on the card; a power cycle brings it back to a clean
-                // state, so try the complete download exactly once more.
-                transceiver.powerOff()
-                transceiver.powerOn()
-                CardDumpReader(transceiver).readDriverCard()
+                // state, so try the complete download exactly once more. The
+                // original error stays visible if the retry fails too.
+                try {
+                    transceiver.powerOff()
+                    transceiver.powerOn()
+                    CardDumpReader(transceiver).readDriverCard()
+                } catch (retry: Exception) {
+                    throw IllegalStateException(
+                        "${first.message} (card-reset retry failed: ${retry.message})", first,
+                    )
+                }
             }
         } finally {
             transceiver.close()

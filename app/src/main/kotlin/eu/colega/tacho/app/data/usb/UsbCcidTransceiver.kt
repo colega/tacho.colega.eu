@@ -25,15 +25,40 @@ class UsbCcidTransceiver(
 
     private var sequence = 0
 
-    /** Power up the card and return its ATR. */
+    /**
+     * Power up the card and return its ATR.
+     *
+     * Readers commonly refuse the first power-on attempt with "ICC present
+     * but inactive" when the card was left powered by a previous session, so
+     * the attempt is repeated with slot-status polls in between until the
+     * card comes up.
+     */
     fun powerOn(): ByteArray {
-        val response = exchange(CcidMessages.powerOn(SLOT, nextSequence()), "ICC power on")
-        return response.payload
+        var last: CcidResponse? = null
+        repeat(POWER_ON_ATTEMPTS) { attempt ->
+            val response = exchange(CcidMessages.powerOn(SLOT, nextSequence()), "ICC power on", tolerateStatus = true)
+            if (response.statusOk) return response.payload
+            last = response
+            if (attempt < POWER_ON_ATTEMPTS - 1) {
+                // Poll the slot status: this is what wakes slot handling on
+                // several readers, and its non-zero ICC status is normal here.
+                exchange(CcidMessages.getSlotStatus(SLOT, nextSequence()), "slot status", tolerateStatus = true)
+                Thread.sleep(POWER_ON_RETRY_DELAY_MS)
+            }
+        }
+        val failure = requireNotNull(last)
+        throw IllegalStateException(
+            "ICC power on: reader reported status 0x%02X (error 0x%02X) after $POWER_ON_ATTEMPTS attempts".format(
+                failure.status, failure.error
+            )
+        )
     }
 
     /** Power the card down; brings it back to a clean state between sessions. */
     fun powerOff() {
-        exchange(CcidMessages.powerOff(SLOT, nextSequence()), "ICC power off")
+        // The response reports the now-inactive card with a non-zero status,
+        // which is the expected outcome.
+        exchange(CcidMessages.powerOff(SLOT, nextSequence()), "ICC power off", tolerateStatus = true)
     }
 
     override fun transceive(command: ByteArray): ByteArray {
@@ -48,7 +73,7 @@ class UsbCcidTransceiver(
 
     private fun nextSequence(): Int = sequence++ and 0xFF
 
-    private fun exchange(frame: ByteArray, what: String): CcidResponse {
+    private fun exchange(frame: ByteArray, what: String, tolerateStatus: Boolean = false): CcidResponse {
         val sent = connection.bulkTransfer(bulkOut, frame, frame.size, TIMEOUT_MS)
         require(sent == frame.size) { "$what: bulk write sent $sent of ${frame.size} bytes" }
 
@@ -63,7 +88,7 @@ class UsbCcidTransceiver(
                 val declared = le32(buffer, 1) + CcidMessages.HEADER_SIZE
                 if (received >= declared) {
                     val response = CcidMessages.parse(buffer.copyOf(received))
-                    if (!response.statusOk) {
+                    if (!response.statusOk && !tolerateStatus) {
                         throw IllegalStateException("$what: reader reported status 0x%02X (error 0x%02X)".format(response.status, response.error))
                     }
                     return response
@@ -82,6 +107,8 @@ class UsbCcidTransceiver(
         private const val TIMEOUT_MS = 10_000
         private const val MAX_RESPONSE_BYTES = 4096
         private const val SLOT = 0
+        private const val POWER_ON_ATTEMPTS = 3
+        private const val POWER_ON_RETRY_DELAY_MS = 250L
 
         /**
          * Readers announce themselves as class 0x0B (ChipCard/SmartCard); some
