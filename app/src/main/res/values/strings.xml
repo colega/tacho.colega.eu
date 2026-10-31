@@ -65,4 +65,50 @@
 
     <!-- Errors -->
     <string name="error_generic">Card read failed</string>
+    <!-- Event and fault type labels (drivers see these most) -->
+    <string name="insights_events_title">Recorded events</string>
+    <string name="event_ongoing_since">Ongoing since %1$s</string>
+    <string name="event_period">%1$s – %2$s</string>
+    <string name="event_security_breach">Security breach attempt</string>
+    <string name="insights_faults_title">Recorded faults</string>
+    <string name="insights_none_recorded">None recorded</string>
+    <string name="event_generic">Event %1$s</string>
+    <string name="fault_generic">Fault %1$s</string>
+    <string name="event_no_details">General event</string>
+    <string name="event_non_valid_card">Insertion of a non-valid card</string>
+    <string name="event_card_conflict">Card conflict</string>
+    <string name="event_time_overlap">Time overlap</string>
+    <string name="event_driving_without_card">Driving without an appropriate card</string>
+    <string name="event_card_insertion_while_driving">Card insertion while driving</string>
+    <string name="event_last_session_not_closed">Last card session not correctly closed</string>
+    <string name="event_overspeeding">Over-speeding</string>
+    <string name="event_power_supply">Power supply interruption</string>
+    <string name="event_motion_data_error">Motion data error</string>
+    <string name="event_vehicle_motion_conflict">Vehicle motion conflict</string>
+    <string name="event_time_conflict_gnss">Time conflict (GNSS vs vehicle unit)</string>
+    <string name="fault_no_details">Fault, no further details</string>
+    <string name="fault_motion_sensor_auth">Motion sensor authentication failure</string>
+    <string name="fault_card_auth">Tachograph card authentication failure</string>
+    <string name="fault_unauthorised_change">Unauthorised change of motion sensor</string>
+    <string name="fault_data_input_integrity">Card data input integrity error</string>
+    <string name="fault_stored_user_data_integrity">Stored user data integrity error</string>
+    <string name="fault_internal_transfer">Internal data transfer error</string>
+    <string name="fault_case_opening">Unauthorised case opening</string>
+    <string name="fault_hardware_sabotage">Hardware sabotage</string>
+    <string name="fault_vu_internal">Vehicle unit internal fault</string>
+    <string name="fault_printer">Printer fault</string>
+    <string name="fault_display">Display fault</string>
+    <string name="fault_downloading">Downloading fault</string>
+    <string name="fault_sensor">Sensor fault</string>
+    <string name="fault_card">Card fault</string>
+    <string name="fault_gnss_internal">Internal GNSS receiver fault</string>
+    <string name="fault_gnss_external">External GNSS receiver fault</string>
+    <string name="fault_gnss_communication">External GNSS communication fault</string>
+    <string name="fault_gnss_no_position">No GNSS position data</string>
+    <string name="fault_gnss_tamper">Tamper detection of GNSS</string>
+    <string name="fault_gnss_certificate_expired">External GNSS facility certificate expired</string>
+    <string name="fault_rcm">Remote Communication Module fault</string>
+    <string name="fault_rcm_communication">Remote Communication Module communication fault</string>
+    <string name="fault_its">ITS interface fault</string>
+
 </resources>

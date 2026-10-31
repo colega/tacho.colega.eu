@@ -65,4 +65,50 @@
 
     <!-- Errores -->
     <string name="error_generic">Error al leer la tarjeta</string>
+    <!-- Etiquetas de eventos y averías -->
+    <string name="insights_events_title">Eventos registrados</string>
+    <string name="event_ongoing_since">En curso desde %1$s</string>
+    <string name="event_period">%1$s – %2$s</string>
+    <string name="event_security_breach">Intento de violación de seguridad</string>
+    <string name="insights_faults_title">Averías registradas</string>
+    <string name="insights_none_recorded">Ninguno registrado</string>
+    <string name="event_generic">Evento %1$s</string>
+    <string name="fault_generic">Avería %1$s</string>
+    <string name="event_no_details">Evento general</string>
+    <string name="event_non_valid_card">Inserción de una tarjeta no válida</string>
+    <string name="event_card_conflict">Conflicto de tarjetas</string>
+    <string name="event_time_overlap">Superposición de tiempos</string>
+    <string name="event_driving_without_card">Conducción sin tarjeta adecuada</string>
+    <string name="event_card_insertion_while_driving">Inserción de tarjeta en marcha</string>
+    <string name="event_last_session_not_closed">Última sesión no cerrada correctamente</string>
+    <string name="event_overspeeding">Exceso de velocidad</string>
+    <string name="event_power_supply">Interrupción de la alimentación</string>
+    <string name="event_motion_data_error">Error de datos de movimiento</string>
+    <string name="event_vehicle_motion_conflict">Conflicto de movimiento del vehículo</string>
+    <string name="event_time_conflict_gnss">Conflicto de hora (GNSS vs unidad de vehículo)</string>
+    <string name="fault_no_details">Avería sin más detalles</string>
+    <string name="fault_motion_sensor_auth">Fallo de autenticación del sensor de movimiento</string>
+    <string name="fault_card_auth">Fallo de autenticación de la tarjeta</string>
+    <string name="fault_unauthorised_change">Cambio no autorizado del sensor de movimiento</string>
+    <string name="fault_data_input_integrity">Error de integridad de datos de entrada</string>
+    <string name="fault_stored_user_data_integrity">Error de integridad de datos almacenados</string>
+    <string name="fault_internal_transfer">Error de transferencia interna de datos</string>
+    <string name="fault_case_opening">Apertura no autorizada del equipamiento</string>
+    <string name="fault_hardware_sabotage">Sabotaje de hardware</string>
+    <string name="fault_vu_internal">Fallo interno de la unidad de vehículo</string>
+    <string name="fault_printer">Fallo de impresora</string>
+    <string name="fault_display">Fallo de pantalla</string>
+    <string name="fault_downloading">Fallo de descarga</string>
+    <string name="fault_sensor">Fallo de sensor</string>
+    <string name="fault_card">Fallo de tarjeta</string>
+    <string name="fault_gnss_internal">Fallo del receptor GNSS interno</string>
+    <string name="fault_gnss_external">Fallo del receptor GNSS externo</string>
+    <string name="fault_gnss_communication">Fallo de comunicación GNSS externa</string>
+    <string name="fault_gnss_no_position">Sin datos de posición GNSS</string>
+    <string name="fault_gnss_tamper">Detección de manipulación del GNSS</string>
+    <string name="fault_gnss_certificate_expired">Certificado de la instalación GNSS caducado</string>
+    <string name="fault_rcm">Fallo del módulo de comunicación remota</string>
+    <string name="fault_rcm_communication">Fallo de comunicación del módulo remoto</string>
+    <string name="fault_its">Fallo de la interfaz ITS</string>
+
 </resources>
