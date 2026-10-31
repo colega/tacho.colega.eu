@@ -63,6 +63,22 @@ and load/unload files introduced for version 2 cards.
 Requirements: JDK 17+, Android SDK (compileSdk 37). `local.properties` points
 at the SDK as usual.
 
+## Releasing
+
+Create a `keystore.properties` file at the repo root (git-ignored):
+
+```properties
+storeFile=/absolute/path/to/release.keystore
+storePassword=…
+keyAlias=upload
+keyPassword=…
+```
+
+`./gradlew :app:assembleRelease` then signs with that key. Without the file,
+release builds fall back to the debug key (CI-friendly). Play Store listing
+text lives in `store/` (English and Spanish), together with the 512 px icon
+and the 1024×500 feature graphic.
+
 ## Testing
 
 - **Core**: synthetic byte-level card dumps round-tripped through every
