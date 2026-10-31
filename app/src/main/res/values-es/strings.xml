@@ -1,0 +1,69 @@
+<resources>
+    <string name="app_name">Tacho Colega</string>
+
+    <!-- Navegación inferior -->
+    <string name="tab_card">Tarjeta</string>
+    <string name="tab_timeline">Cronología</string>
+    <string name="tab_calendar">Calendario</string>
+    <string name="tab_insights">Análisis</string>
+
+    <!-- Resumen de la tarjeta -->
+    <string name="card_title">Tarjeta de conductor</string>
+    <string name="card_reading">Leyendo tarjeta…</string>
+    <string name="card_empty_title">Aún no se ha leído ninguna tarjeta</string>
+    <string name="card_empty_body">Mantén la tarjeta en la parte trasera del teléfono hasta que termine la lectura.</string>
+    <string name="card_number">Nº de tarjeta %1$s</string>
+    <string name="card_generation_v2">Versión 2</string>
+    <string name="card_generation_g1">Generación 1</string>
+    <string name="card_generation_g2">Generación 2</string>
+    <string name="card_validity_title">Validez</string>
+    <string name="card_issued">Emitida el %1$s</string>
+    <string name="card_expires">Caduca el %1$s</string>
+    <string name="card_session_title">Sesión actual</string>
+    <string name="card_session_opened">Iniciada el %1$s</string>
+    <string name="card_session_vehicle">Vehículo %1$s %2$s</string>
+    <string name="card_data_title">Datos en bruto</string>
+    <string name="card_export_dump">Exportar archivo de tarjeta</string>
+    <string name="card_export_started">Exportando archivo de tarjeta…</string>
+
+    <!-- Cronología -->
+    <string name="timeline_title">Cronología</string>
+    <string name="timeline_empty">Lee una tarjeta para ver su actividad diaria.</string>
+    <string name="timeline_driving_hours">%1$d h de conducción</string>
+    <string name="timeline_summary">trabajo %1$d h · pausa %2$d min · descanso %3$d h</string>
+
+    <!-- Calendario -->
+    <string name="calendar_title">Calendario</string>
+    <string name="calendar_empty">Lee una tarjeta para ver la actividad en el calendario.</string>
+    <string name="calendar_previous_month">Mes anterior</string>
+    <string name="calendar_next_month">Mes siguiente</string>
+    <string name="calendar_weekday_monday">Lun</string>
+    <string name="calendar_weekday_tuesday">Mar</string>
+    <string name="calendar_weekday_wednesday">Mié</string>
+    <string name="calendar_weekday_thursday">Jue</string>
+    <string name="calendar_weekday_friday">Vie</string>
+    <string name="calendar_weekday_saturday">Sáb</string>
+    <string name="calendar_weekday_sunday">Dom</string>
+    <string name="calendar_day_a11y">%1$s: %2$s</string>
+
+    <!-- Análisis -->
+    <string name="insights_title">Análisis</string>
+    <string name="insights_empty">Lee una tarjeta para analizar los tiempos de conducción.</string>
+    <string name="insights_week_of">Semana del %1$s</string>
+    <string name="insights_week_driving">%1$d h de conducción</string>
+    <string name="insights_recorded_days">%1$d días registrados</string>
+    <string name="insights_no_violations">No se han detectado incumplimientos</string>
+    <string name="insights_violations_title">Incumplimientos</string>
+    <string name="insights_excess_minutes">+%1$d min</string>
+    <string name="insights_daily_driving">Tiempo de conducción diario</string>
+    <string name="insights_weekly_driving">Tiempo de conducción semanal</string>
+
+    <!-- Tipos de incumplimiento (Reglamento UE 561/2006) -->
+    <string name="violation_daily_driving">Tiempo de conducción diario superado</string>
+    <string name="violation_weekly_driving">Tiempo de conducción semanal superado</string>
+    <string name="violation_break">Pausa obligatoria tras 4,5 h de conducción</string>
+    <string name="violation_fortnight">Tiempo de conducción bisemanal superado</string>
+
+    <!-- Errores -->
+    <string name="error_generic">Error al leer la tarjeta</string>
+</resources>

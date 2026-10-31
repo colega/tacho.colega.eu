@@ -2,6 +2,7 @@ package eu.colega.tacho.app.ui
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Timeline
@@ -27,6 +28,7 @@ import eu.colega.tacho.app.R
 enum class TachoDestination(val route: String) {
     CARD("card"),
     TIMELINE("timeline"),
+    CALENDAR("calendar"),
     INSIGHTS("insights"),
 }
 
@@ -58,6 +60,7 @@ fun TachoNavGraph(
                         when (destination) {
                             TachoDestination.CARD -> Icon(Icons.Filled.CreditCard, null)
                             TachoDestination.TIMELINE -> Icon(Icons.Filled.Timeline, null)
+                            TachoDestination.CALENDAR -> Icon(Icons.Filled.CalendarMonth, null)
                             TachoDestination.INSIGHTS -> Icon(Icons.Filled.Insights, null)
                         }
                     },
@@ -66,6 +69,7 @@ fun TachoNavGraph(
                             when (destination) {
                                 TachoDestination.CARD -> stringResource(R.string.tab_card)
                                 TachoDestination.TIMELINE -> stringResource(R.string.tab_timeline)
+                                TachoDestination.CALENDAR -> stringResource(R.string.tab_calendar)
                                 TachoDestination.INSIGHTS -> stringResource(R.string.tab_insights)
                             }
                         )
@@ -84,6 +88,9 @@ fun TachoNavGraph(
             }
             composable(TachoDestination.TIMELINE.route) { val cardViewModel = sharedCardViewModel()
                 TimelineScreen(cardViewModel)
+            }
+            composable(TachoDestination.CALENDAR.route) { val cardViewModel = sharedCardViewModel()
+                CalendarScreen(cardViewModel)
             }
             composable(TachoDestination.INSIGHTS.route) { val cardViewModel = sharedCardViewModel()
                 InsightsScreen(cardViewModel)

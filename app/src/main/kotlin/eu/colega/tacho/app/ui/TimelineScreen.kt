@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
@@ -18,13 +17,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import eu.colega.tacho.app.R
 import eu.colega.tacho.core.analysis.ActivityAnalysis
-import eu.colega.tacho.core.tachograph.Activity
 
 /** Daily activity timeline built from the card's activity change records. */
 @Composable
@@ -39,9 +38,9 @@ fun TimelineScreen(
                 .fillMaxSize()
                 .padding(16.dp),
         ) {
-            Text("Timeline", style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(R.string.timeline_title), style = MaterialTheme.typography.headlineSmall)
             Text(
-                "Read a card to see its daily activity.",
+                stringResource(R.string.timeline_empty),
                 Modifier.padding(top = 8.dp),
                 style = MaterialTheme.typography.bodyMedium,
             )
@@ -52,10 +51,14 @@ fun TimelineScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         item {
-            Text("Timeline", style = MaterialTheme.typography.headlineSmall)
+            Text(
+                stringResource(R.string.timeline_title),
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(vertical = 8.dp),
+            )
         }
         items(analysis.dailySummaries.asReversed(), key = { it.date.toEpochDay() }) { summary ->
             DayRow(summary)
@@ -73,7 +76,7 @@ private fun DayRow(summary: ActivityAnalysis.DailySummary) {
         ) {
             Text(summary.date.toString(), style = MaterialTheme.typography.titleMedium)
             Text(
-                "${summary.drivingMinutes / 60} h driving",
+                stringResource(R.string.timeline_driving_hours, summary.drivingMinutes / 60),
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (summary.drivingMinutes > ActivityAnalysis.DAILY_DRIVING_LIMIT_MIN) {
                     MaterialTheme.colorScheme.error
@@ -84,7 +87,12 @@ private fun DayRow(summary: ActivityAnalysis.DailySummary) {
         }
         ActivityBar(summary)
         Text(
-            "work ${summary.workMinutes / 60} h · break ${summary.breakMinutes} min · rest ${summary.restMinutes / 60} h",
+            stringResource(
+                R.string.timeline_summary,
+                summary.workMinutes / 60,
+                summary.breakMinutes,
+                summary.restMinutes / 60,
+            ),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

@@ -1,5 +1,6 @@
 package eu.colega.tacho.app.ui
 
+import eu.colega.tacho.app.data.CardRepository
 import eu.colega.tacho.core.tachograph.DriverCardDump
 import eu.colega.tacho.core.tachograph.DriverCardParser
 import eu.colega.tacho.core.tachograph.Layout
@@ -19,7 +20,7 @@ import java.io.ByteArrayOutputStream
 @RunWith(RobolectricTestRunner::class)
 class CardViewModelTest {
 
-    private val viewModel = CardViewModel()
+    private val viewModel = CardViewModel(CardRepository())
 
     @Test
     fun `parsing a valid dump publishes the card and clears errors`() {

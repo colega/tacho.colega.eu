@@ -143,3 +143,10 @@ object Layout {
     val VEHICLE_UNITS_G1 = 842..2002
     val GNSS_PLACES_G1 = 3782..5042
 }
+
+/**
+ * Canonical file order for serialising a driver card dump (export/import):
+ * AppId first, certificates, then data files — mirroring [CardDumpReader]
+ * ordering. Only the files present in a dump are written.
+ */
+fun driverCardDumpFileIds(): List<Int> = CardDumpReader.G2_EF_IDS + CardDumpReader.G1_EF_IDS

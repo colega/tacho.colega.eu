@@ -32,6 +32,11 @@ class MainActivity : ComponentActivity() {
                 TachoNavGraph(cardViewModel)
             }
         }
+        lifecycleScope.launch {
+            cardViewModel.exportIntent.collect { shareIntent ->
+                startActivity(Intent.createChooser(shareIntent, null))
+            }
+        }
         handleNfcIntent(intent)
     }
 
