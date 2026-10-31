@@ -51,9 +51,14 @@ fun CalendarScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val analysis = state.analysis
-    var month by remember { mutableStateOf(YearMonth.now()) }
     val summariesByDate = remember(analysis) {
         analysis?.dailySummaries?.associateBy { it.date } ?: emptyMap()
+    }
+    // Open on the most recent recorded month so drivers land on their data.
+    var month by remember(analysis) {
+        mutableStateOf(
+            summariesByDate.keys.maxOrNull()?.let(YearMonth::from) ?: YearMonth.now()
+        )
     }
     val monthDays = remember(month) {
         val first = month.atDay(1)

@@ -76,7 +76,7 @@ private fun DayRow(summary: ActivityAnalysis.DailySummary) {
         ) {
             Text(summary.date.displayDate(), style = MaterialTheme.typography.titleMedium)
             Text(
-                stringResource(R.string.timeline_driving_hours, summary.drivingMinutes / 60),
+                stringResource(R.string.timeline_driving_hours, hoursLabel(summary.drivingMinutes)),
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (summary.drivingMinutes > ActivityAnalysis.DAILY_DRIVING_LIMIT_MIN) {
                     MaterialTheme.colorScheme.error

@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AssistChip
@@ -96,7 +94,7 @@ private fun WeeklyChart(analysis: ActivityAnalysis.Analysis) {
                                 ),
                         ) {}
                         Text(
-                            stringResource(R.string.insights_week_driving, week.drivingMinutes / 60),
+                            stringResource(R.string.insights_week_driving, hoursLabel(week.drivingMinutes)),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -116,7 +114,7 @@ private fun WeeklyChart(analysis: ActivityAnalysis.Analysis) {
                 weeks.last().days.forEach { day ->
                     AssistChip(
                         onClick = {},
-                        label = { Text("${day.date.dayOfMonth}: ${day.drivingMinutes / 60} h") },
+                        label = { Text("${day.date.dayOfMonth}: ${hoursLabel(day.drivingMinutes)}") },
                         colors = androidx.compose.material3.AssistChipDefaults.assistChipColors(
                             labelColor = if (day.drivingMinutes > ActivityAnalysis.DAILY_DRIVING_LIMIT_MIN) {
                                 MaterialTheme.colorScheme.error
@@ -142,9 +140,12 @@ private fun Violations(violations: List<Violation>) {
         style = MaterialTheme.typography.titleMedium,
     )
     if (violations.isEmpty()) return
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(violations, key = { it.type.name + it.date.toString() + it.description }) { violation ->
-            Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        violations.forEach { violation ->
+            Card(
+                Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+            ) {
                 Column(Modifier.padding(16.dp)) {
                     Text(
                         violation.localizedTitle(),
@@ -180,3 +181,7 @@ private fun Violation.localizedTitle() = stringResource(
         Violation.Type.BREAK -> R.string.violation_break
     },
 )
+
+/** Compact hours label that keeps half hours: "9 h" or "9 h 30". */
+internal fun hoursLabel(minutes: Int): String =
+    if (minutes % 60 == 0) "${minutes / 60} h" else "${minutes / 60} h ${minutes % 60}"

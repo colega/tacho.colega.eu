@@ -24,12 +24,13 @@
     <string name="card_session_vehicle">Vehículo %1$s %2$s</string>
     <string name="card_data_title">Datos en bruto</string>
     <string name="card_export_dump">Exportar archivo de tarjeta</string>
+    <string name="card_import_dump">Abrir archivo de tarjeta…</string>
     <string name="card_export_started">Exportando archivo de tarjeta…</string>
 
     <!-- Cronología -->
     <string name="timeline_title">Cronología</string>
     <string name="timeline_empty">Lee una tarjeta para ver su actividad diaria.</string>
-    <string name="timeline_driving_hours">%1$d h de conducción</string>
+    <string name="timeline_driving_hours">%1$s de conducción</string>
     <string name="timeline_summary">trabajo %1$d h · pausa %2$d min · descanso %3$d h</string>
 
     <!-- Calendario -->
@@ -50,7 +51,7 @@
     <string name="insights_title">Análisis</string>
     <string name="insights_empty">Lee una tarjeta para analizar los tiempos de conducción.</string>
     <string name="insights_week_of">Semana del %1$s</string>
-    <string name="insights_week_driving">%1$d h de conducción</string>
+    <string name="insights_week_driving">%1$s de conducción</string>
     <string name="insights_recorded_days">%1$d días registrados</string>
     <string name="insights_no_violations">No se han detectado incumplimientos</string>
     <string name="insights_violations_title">Incumplimientos</string>

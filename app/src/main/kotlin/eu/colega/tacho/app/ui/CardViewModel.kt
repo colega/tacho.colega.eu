@@ -1,6 +1,7 @@
 package eu.colega.tacho.app.ui
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import eu.colega.tacho.app.data.CardRepository
@@ -63,6 +64,18 @@ class CardViewModel @Inject constructor(
     /** Report that the current dump is being exported (UI shows progress). */
     fun setExporting(isExporting: Boolean) {
         _state.update { it.copy(isExporting = isExporting) }
+    }
+
+    /** Import a previously exported dump file chosen through the SAF picker. */
+    fun importDump(context: Context, uri: Uri) {
+        viewModelScope.launch(Dispatchers.IO) {
+            setReading(true)
+            try {
+                onDumpRead(repository.importFromUri(context, uri))
+            } catch (e: Exception) {
+                onReadError(e.message ?: context.getString(eu.colega.tacho.app.R.string.error_generic))
+            }
+        }
     }
 
     /** Serialise the current dump and hand a share intent back to the UI. */

@@ -9,7 +9,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -74,19 +77,41 @@ fun CardScreen(
             HolderCard(card)
             ValidityCard(card)
             SessionCard(card)
-            Button(
-                onClick = { viewModel.requestExport(context) },
-                enabled = !state.isExporting,
-            ) {
-                if (state.isExporting) {
-                    CircularProgressIndicator(
-                        Modifier.padding(end = 8.dp).size(16.dp),
-                        strokeWidth = 2.dp,
-                    )
-                }
-                Text(stringResource(R.string.card_export_dump))
-            }
+            ExportButton(state, viewModel, context)
         }
+        ImportButton(viewModel)
+    }
+}
+
+@Composable
+private fun ExportButton(state: CardUiState, viewModel: CardViewModel, context: android.content.Context) {
+    Button(
+        onClick = { viewModel.requestExport(context) },
+        enabled = !state.isExporting,
+    ) {
+        if (state.isExporting) {
+            CircularProgressIndicator(
+                Modifier.padding(end = 8.dp).size(16.dp),
+                strokeWidth = 2.dp,
+            )
+        }
+        Text(stringResource(R.string.card_export_dump))
+    }
+}
+
+@Composable
+private fun ImportButton(viewModel: CardViewModel) {
+    val context = LocalContext.current
+    val picker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri != null) viewModel.importDump(context, uri)
+    }
+    OutlinedButton(
+        onClick = { picker.launch(arrayOf("*/*")) },
+        modifier = Modifier.padding(top = 4.dp),
+    ) {
+        Text(stringResource(R.string.card_import_dump))
     }
 }
 
@@ -138,7 +163,7 @@ private fun SessionCard(card: DriverCard) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(stringResource(R.string.card_session_title), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.card_session_opened, usage.sessionOpenTime.toString()))
+            Text(stringResource(R.string.card_session_opened, usage.sessionOpenTime.displayDateTime()))
             usage.vehicle.number.takeIf { it.isNotBlank() }?.let {
                 Text(stringResource(R.string.card_session_vehicle, usage.vehicle.nation.alpha, it))
             }
