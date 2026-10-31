@@ -19,6 +19,7 @@
     <string name="card_validity_title">Validity</string>
     <string name="card_issued">Issued %1$s</string>
     <string name="card_expires">Expires %1$s</string>
+    <string name="card_last_download">Last downloaded %1$s</string>
     <string name="card_session_title">Current session</string>
     <string name="card_session_opened">Opened %1$s</string>
     <string name="card_session_vehicle">Vehicle %1$s %2$s</string>

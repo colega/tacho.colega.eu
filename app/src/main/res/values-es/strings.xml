@@ -19,6 +19,7 @@
     <string name="card_validity_title">Validez</string>
     <string name="card_issued">Emitida el %1$s</string>
     <string name="card_expires">Caduca el %1$s</string>
+    <string name="card_last_download">Última descarga %1$s</string>
     <string name="card_session_title">Sesión actual</string>
     <string name="card_session_opened">Iniciada el %1$s</string>
     <string name="card_session_vehicle">Vehículo %1$s %2$s</string>

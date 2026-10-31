@@ -150,8 +150,15 @@ private fun ValidityCard(card: DriverCard) {
         Column(Modifier.padding(16.dp)) {
             Text(stringResource(R.string.card_validity_title), style = MaterialTheme.typography.titleMedium)
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(stringResource(R.string.card_issued, card.identification.cardIssueDate.toString()))
-                Text(stringResource(R.string.card_expires, card.identification.cardExpiryDate.toString()))
+                Text(stringResource(R.string.card_issued, card.identification.cardIssueDate.displayDate()))
+                Text(stringResource(R.string.card_expires, card.identification.cardExpiryDate.displayDate()))
+            }
+            if (card.lastCardDownload.seconds > 0) {
+                Text(
+                    stringResource(R.string.card_last_download, card.lastCardDownload.displayDateTime()),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }

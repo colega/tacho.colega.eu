@@ -23,6 +23,26 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
 
     private val cardViewModel: CardViewModel by viewModels()
+    private var nfcAdapter: NfcAdapter? = null
+
+    override fun onResume() {
+        super.onResume()
+        // Reader mode delivers ISO-DEP tags while the app is open, without
+        // competing with other apps' tag dispatch.
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+        nfcAdapter?.enableReaderMode(
+            this,
+            { tag -> handleTag(tag) },
+            NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or
+                NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
+            null,
+        )
+    }
+
+    override fun onPause() {
+        nfcAdapter?.disableReaderMode(this)
+        super.onPause()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,10 +65,8 @@ class MainActivity : ComponentActivity() {
         handleNfcIntent(intent)
     }
 
-    /** A card was tapped: read it off the main-thread intent and parse in the background. */
-    private fun handleNfcIntent(intent: Intent?) {
-        val tag = intent?.let { IntentCompat.getParcelableExtra(it, NfcAdapter.EXTRA_TAG, Tag::class.java) }
-            ?: return
+    /** A card was tapped: read it in the background and parse the dump. */
+    private fun handleTag(tag: Tag) {
         val isoDep = IsoDep.get(tag) ?: return
         cardViewModel.setReading(true)
         lifecycleScope.launch(Dispatchers.IO) {
@@ -58,5 +76,12 @@ class MainActivity : ComponentActivity() {
                 cardViewModel.onReadError(e.message ?: "card read failed")
             }
         }
+    }
+
+    /** Fallback route: the system tag dispatch when the app was closed. */
+    private fun handleNfcIntent(intent: Intent?) {
+        val tag = intent?.let { IntentCompat.getParcelableExtra(it, NfcAdapter.EXTRA_TAG, Tag::class.java) }
+            ?: return
+        handleTag(tag)
     }
 }

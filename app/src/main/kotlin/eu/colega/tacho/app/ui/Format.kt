@@ -2,6 +2,7 @@ package eu.colega.tacho.app.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
+import eu.colega.tacho.core.card.CardDate
 import eu.colega.tacho.core.card.TimeReal
 import java.time.Instant
 import java.time.LocalDate
@@ -34,3 +35,12 @@ fun TimeReal.displayDateTime(): String {
 private fun currentLocale(): java.util.Locale =
     LocalConfiguration.current.locales.get(0)
 
+
+/** Card date rendering; unpadded or zeroed dates fall back to the raw form. */
+@Composable
+fun CardDate.displayDate(): String =
+    if (year in 1900..9999 && month in 1..12 && day in 1..31) {
+        LocalDate.of(year, month, day).displayDate()
+    } else {
+        toString()
+    }
