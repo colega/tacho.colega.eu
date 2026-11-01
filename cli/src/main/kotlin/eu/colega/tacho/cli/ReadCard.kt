@@ -41,12 +41,21 @@ fun main(args: Array<String>) {
         println()
         println("Download complete: ${dump.fileIds.size} elementary files")
 
-        val dir = File("tmp/claude/dump").apply { mkdirs() }
+        // Local, git-ignored test asset: the portable container for the
+        // emulator import plus the raw elementary files for byte-level work.
+        // Gradle runs this tool with the module directory as cwd, so anchor
+        // the path at the repo root (the directory holding the settings file).
+        val root = generateSequence(File(System.getProperty("user.dir"))) { it.parentFile }
+            .firstOrNull { File(it, "settings.gradle.kts").exists() }
+            ?: File(System.getProperty("user.dir"))
+        val dir = File(root, "testdata/card").apply { mkdirs() }
+        File(dir, "card.tcd").writeBytes(eu.colega.tacho.core.tachograph.TcdContainer.toBytes(dump))
         for (fid in dump.fileIds) {
             val bytes = dump.file(fid) ?: continue
             File(dir, "%04X.bin".format(fid)).writeBytes(bytes)
         }
-        println("Raw files saved to ${dir.absolutePath}")
+        println("Dump saved to ${dir.absolutePath} (card.tcd + 23 EF files)")
+        println("Emulator: adb push ${dir.absolutePath}/card.tcd /sdcard/Download/")
 
         val driver = DriverCardParser.parse(dump)
         println()

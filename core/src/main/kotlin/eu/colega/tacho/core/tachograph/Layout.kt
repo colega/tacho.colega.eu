@@ -153,4 +153,8 @@ object Layout {
  * AppId first, certificates, then data files — mirroring [CardDumpReader]
  * ordering. Only the files present in a dump are written.
  */
-fun driverCardDumpFileIds(): List<Int> = CardDumpReader.G2_EF_IDS + CardDumpReader.G1_EF_IDS
+/**
+ * Canonical elementary file order for `.tcd` containers: the generation 2
+ * download order first, then generation 1 files not already listed.
+ */
+fun driverCardDumpFileIds(): List<Int> = (CardDumpReader.G2_EF_IDS + CardDumpReader.G1_EF_IDS).distinct()

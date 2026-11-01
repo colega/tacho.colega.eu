@@ -17,3 +17,4 @@ omp-personal
 keystore.properties
 *.jks
 *.keystore
+testdata/
