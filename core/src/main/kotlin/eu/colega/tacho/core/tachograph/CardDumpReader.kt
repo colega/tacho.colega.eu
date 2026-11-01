@@ -19,6 +19,8 @@ import eu.colega.tacho.core.card.CardStructureVersion
 class CardDumpReader(
     private val transceiver: ApduTransceiver,
     private val chunkSize: Int = 255,
+    /** Reports the FID of every elementary file as the download reaches it. */
+    private val onFileStart: ((Int) -> Unit)? = null,
 ) {
     fun readDriverCard(): DriverCardDump {
         val generation = selectApplication()
@@ -184,6 +186,7 @@ class CardDumpReader(
     }
 
     private fun readFile(fid: Int, expectedSize: Int): ByteArray? {
+        onFileStart?.invoke(fid)
         return try {
             selectEfid(fid)
             readExact(fid, expectedSize)
@@ -216,6 +219,7 @@ class CardDumpReader(
      * way: over-reads answer 6700 without a length), so return null.
      */
     private fun readCertificate(fid: Int): ByteArray? {
+        onFileStart?.invoke(fid)
         selectEfid(fid)
         val head = readRange(fid, 0, 5)
         if (head.all { it.toInt() == 0 }) return null

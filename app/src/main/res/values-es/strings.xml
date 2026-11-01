@@ -9,10 +9,31 @@
 
     <!-- Resumen de la tarjeta -->
     <string name="card_title">Tarjeta de conductor</string>
+    <string name="reading_connecting">Conectando con el lector de tarjetas\u2026</string>
+    <string name="reading_application">Preparando la lectura de tu tarjeta\u2026</string>
+    <string name="reading_certificates">Verificando los certificados de seguridad de la tarjeta\u2026</string>
+    <string name="reading_identification">Leyendo tu identidad y los datos de la tarjeta\u2026</string>
+    <string name="reading_last_download">Comprobando la \u00faltima descarga de la tarjeta\u2026</string>
+    <string name="reading_licence">Leyendo la informaci\u00f3n de tu permiso de conducir\u2026</string>
+    <string name="reading_events">Leyendo los eventos registrados\u2026</string>
+    <string name="reading_faults">Leyendo las aver\u00edas registradas\u2026</string>
+    <string name="reading_activity">Leyendo tu actividad de conducci\u00f3n diaria\u2026</string>
+    <string name="reading_vehicles">Leyendo los veh\u00edculos que has conducido\u2026</string>
+    <string name="reading_places">Leyendo los lugares de inicio y fin de trabajo\u2026</string>
+    <string name="reading_session">Leyendo tu sesi\u00f3n actual\u2026</string>
+    <string name="reading_control">Leyendo los registros de control\u2026</string>
+    <string name="reading_specific">Leyendo condiciones especiales como transbordadores\u2026</string>
+    <string name="reading_vehicle_units">Leyendo las Unidades de Veh\u00edculo usadas\u2026</string>
+    <string name="reading_gnss">Leyendo los registros de posici\u00f3n por sat\u00e9lite\u2026</string>
+    <string name="reading_authentication">Leyendo los datos de autenticaci\u00f3n\u2026</string>
+    <string name="reading_generic">Leyendo los datos de la tarjeta\u2026</string>
+    <string name="reading_show_details">Mostrar detalles t\u00e9cnicos</string>
+    <string name="reading_hide_details">Ocultar detalles t\u00e9cnicos</string>
+    <string name="reading_technical_detail">Fichero elemental %1$s (FID %2$04X)</string>
     <string name="card_reading">Leyendo la tarjeta con el lector…</string>
     <string name="card_read_reader">Leer tarjeta con el lector</string>
-    <string name="card_empty_title">Aún no se ha leído ninguna tarjeta</string>
-    <string name="card_empty_body">Conecta un lector de tarjetas USB con la tarjeta insertada, o abre un archivo de tarjeta exportado.</string>
+    <string name="card_empty_title">Lee tu tarjeta de conductor</string>
+    <string name="card_empty_body">Conecta un lector de tarjetas USB con tu tarjeta de conductor, o abre un fichero de tarjeta que exportases antes. Tus datos se quedan en este dispositivo.</string>
     <string name="card_number">Nº de tarjeta %1$s</string>
     <string name="card_generation_v2">Versión 2</string>
     <string name="card_generation_g1">Generación 1</string>
@@ -26,6 +47,10 @@
     <string name="card_session_vehicle">Vehículo %1$s %2$s</string>
     <string name="card_session_none">Sin sesión abierta</string>
     <string name="card_export_dump">Exportar archivo de tarjeta</string>
+    <string name="card_empty_no_reader">Conecta un lector de tarjetas USB para leer una tarjeta.</string>
+    <string name="card_status_valid">V\u00e1lida</string>
+    <string name="card_status_expiring">Caduca pronto</string>
+    <string name="card_status_expired">Caducada</string>
     <string name="card_import_dump">Abrir archivo de tarjeta…</string>
 
     <!-- Cronología -->
@@ -63,6 +88,7 @@
     <string name="violation_weekly_driving">Tiempo de conducción semanal superado</string>
     <string name="violation_break">Pausa obligatoria tras 4,5 h de conducción</string>
     <string name="violation_daily_rest">Descanso diario insuficiente</string>
+    <string name="violation_weekly_rest">Descanso semanal insuficiente</string>
     <string name="violation_fortnight">Tiempo de conducción bisemanal superado</string>
 
     <!-- Errores -->

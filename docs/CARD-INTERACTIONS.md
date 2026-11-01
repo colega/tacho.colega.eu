@@ -2,8 +2,8 @@
 
 Notes for anyone (human or agent) working on the card download, parsing
 or the reader transports. Everything here was verified against a real
-generation 2 driver card (Spanish card E06675250Y..., ACS ACR39U reader)
-during the November 2026 debugging session.
+generation 2 driver card (an ACS ACR39U reader)
+during the November 2026 debugging session. The card and holder shown in examples are always synthetic; never commit real card data.
 
 ## The card is a contact chip card, not an NFC card
 

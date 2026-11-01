@@ -12,12 +12,12 @@ import eu.colega.tacho.core.tachograph.DriverCardDump
  */
 class UsbCardReader(private val usbManager: UsbManager, private val device: UsbDevice) {
 
-    fun readCard(): DriverCardDump {
+    fun readCard(onFileStart: ((Int) -> Unit)? = null): DriverCardDump {
         val transceiver = UsbCcidTransceiver.open(usbManager, device)
         try {
             transceiver.powerOn()
             return try {
-                CardDumpReader(transceiver).readDriverCard()
+                CardDumpReader(transceiver, onFileStart = onFileStart).readDriverCard()
             } catch (first: Exception) {
                 // A failed session (for example an interrupted read) can leave
                 // state on the card; a power cycle brings it back to a clean
@@ -26,7 +26,7 @@ class UsbCardReader(private val usbManager: UsbManager, private val device: UsbD
                 try {
                     transceiver.powerOff()
                     transceiver.powerOn()
-                    CardDumpReader(transceiver).readDriverCard()
+                    CardDumpReader(transceiver, onFileStart = onFileStart).readDriverCard()
                 } catch (retry: Exception) {
                     throw IllegalStateException(
                         "${first.message} (card-reset retry failed: ${retry.message})", first,

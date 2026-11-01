@@ -9,10 +9,31 @@
 
     <!-- Card overview -->
     <string name="card_title">Driver card</string>
+    <string name="reading_connecting">Connecting to the card reader\u2026</string>
+    <string name="reading_application">Preparing to read your card\u2026</string>
+    <string name="reading_certificates">Verifying the card security certificates\u2026</string>
+    <string name="reading_identification">Reading your identity and card details\u2026</string>
+    <string name="reading_last_download">Checking when the card was last downloaded\u2026</string>
+    <string name="reading_licence">Reading your driving licence information\u2026</string>
+    <string name="reading_events">Reading recorded events\u2026</string>
+    <string name="reading_faults">Reading recorded faults\u2026</string>
+    <string name="reading_activity">Reading your daily driving activity\u2026</string>
+    <string name="reading_vehicles">Reading the vehicles you have driven\u2026</string>
+    <string name="reading_places">Reading the places where work started and ended\u2026</string>
+    <string name="reading_session">Reading your current session\u2026</string>
+    <string name="reading_control">Reading control activity records\u2026</string>
+    <string name="reading_specific">Reading special conditions such as ferry crossings\u2026</string>
+    <string name="reading_vehicle_units">Reading the vehicle units used\u2026</string>
+    <string name="reading_gnss">Reading satellite position records\u2026</string>
+    <string name="reading_authentication">Reading security authentication data\u2026</string>
+    <string name="reading_generic">Reading card data\u2026</string>
+    <string name="reading_show_details">Show technical details</string>
+    <string name="reading_hide_details">Hide technical details</string>
+    <string name="reading_technical_detail">Elementary file %1$s (FID %2$04X)</string>
     <string name="card_reading">Reading card via reader…</string>
     <string name="card_read_reader">Read card via reader</string>
-    <string name="card_empty_title">No card read yet</string>
-    <string name="card_empty_body">Connect a USB card reader with the card inserted, or open an exported card file.</string>
+    <string name="card_empty_title">Read your driver card</string>
+    <string name="card_empty_body">Connect a USB card reader with your driver card, or open a card file you exported earlier. Your data stays on this device.</string>
     <string name="card_number">Card number %1$s</string>
     <string name="card_generation_v2">Version 2</string>
     <string name="card_generation_g1">Generation 1</string>
@@ -26,6 +47,10 @@
     <string name="card_session_vehicle">Vehicle %1$s %2$s</string>
     <string name="card_session_none">No session open</string>
     <string name="card_export_dump">Export card file</string>
+    <string name="card_empty_no_reader">Connect a USB card reader to read a card.</string>
+    <string name="card_status_valid">Valid</string>
+    <string name="card_status_expiring">Expires soon</string>
+    <string name="card_status_expired">Expired</string>
     <string name="card_import_dump">Open card file…</string>
 
     <!-- Timeline -->
@@ -63,6 +88,7 @@
     <string name="violation_weekly_driving">Weekly driving time exceeded</string>
     <string name="violation_break">Break required after 4.5 h driving</string>
     <string name="violation_daily_rest">Daily rest rules not met</string>
+    <string name="violation_weekly_rest">Weekly rest rules not met</string>
     <string name="violation_fortnight">Two-week driving time exceeded</string>
 
     <!-- Errors -->

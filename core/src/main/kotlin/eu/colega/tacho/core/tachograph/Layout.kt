@@ -158,3 +158,33 @@ object Layout {
  * download order first, then generation 1 files not already listed.
  */
 fun driverCardDumpFileIds(): List<Int> = (CardDumpReader.G2_EF_IDS + CardDumpReader.G1_EF_IDS).distinct()
+
+/** Spec name of an elementary file, for technical messages and logs. */
+fun efName(fid: Int): String = when (fid) {
+    0x0501 -> "Application_Identification"
+    0x0502 -> "Events_Data"
+    0x0503 -> "Faults_Data"
+    0x0504 -> "Driver_Activity_Data"
+    0x0505 -> "Vehicles_Used"
+    0x0506 -> "Places"
+    0x0507 -> "Current_Usage"
+    0x0508 -> "Control_Activity_Data"
+    0x050E -> "Card_Download"
+    0x0520 -> "Identification"
+    0x0521 -> "Driving_Licence_Info"
+    0x0522 -> "Specific_Conditions"
+    0x0523 -> "Vehicle_Units_Used"
+    0x0524 -> "GNSS_Places"
+    0x0525 -> "Application_Identification_V2"
+    0x0526 -> "Places_Authentication"
+    0x0527 -> "GNSS_Places_Authentication"
+    0x0528 -> "Border_Crossings"
+    0x0529 -> "Load_Unload_Operations"
+    0x052A -> "Load_Type_Entries"
+    0x052B -> "VU_Configuration"
+    0xC100 -> "Card_Certificate"
+    0xC101 -> "Card_Sign_Certificate"
+    0xC108 -> "CA_Certificate"
+    0xC109 -> "Link_Certificate"
+    else -> "Elementary_File"
+}

@@ -29,6 +29,8 @@ data class CardUiState(
     val card: DriverCard? = null,
     val analysis: ActivityAnalysis.Analysis? = null,
     val error: String? = null,
+    /** FID of the elementary file being read right now; null while connecting. */
+    val readingFile: Int? = null,
 )
 
 @HiltViewModel
@@ -75,7 +77,12 @@ class CardViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             setReading(true)
             try {
-                onDumpRead(eu.colega.tacho.app.data.usb.UsbCardReader(usbManager, device).readCard())
+                onDumpRead(
+                    eu.colega.tacho.app.data.usb.UsbCardReader(usbManager, device)
+                        .readCard { fid ->
+                            _state.update { it.copy(readingFile = fid) }
+                        }
+                )
             } catch (e: Exception) {
                 onReadError(e.message ?: appContext.getString(eu.colega.tacho.app.R.string.error_generic))
             }

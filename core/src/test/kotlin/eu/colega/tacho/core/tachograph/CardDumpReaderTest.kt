@@ -305,6 +305,20 @@ class CardDumpReaderTest {
     }
 
     @Test
+    fun `reports every elementary file as the download reaches it`() {
+        val card = ScriptedCard()
+        populateG2v2(card)
+        val seen = mutableListOf<Int>()
+        CardDumpReader(card, onFileStart = { fid -> seen += fid }).readDriverCard()
+        assertEquals(Layout.EF_APPLICATION_IDENTIFICATION, seen.first())
+        assertTrue(seen.contains(Layout.EF_IDENTIFICATION))
+        assertTrue(seen.contains(Layout.EF_EVENTS_DATA))
+        assertEquals(Layout.EF_LOAD_TYPE_ENTRIES, seen.last())
+        // The secure-messaging-only file is never part of the download.
+        assertTrue(seen.none { it == Layout.EF_VU_CONFIGURATION })
+    }
+
+    @Test
     fun `no tachograph application on the card fails loudly`() {
         val card = ScriptedCard().apply { rejectAid = true }
         val exception = runCatching { CardDumpReader(card).readDriverCard() }.exceptionOrNull()

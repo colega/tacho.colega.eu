@@ -252,15 +252,36 @@ class ActivityAnalysisTest {
 
     @Test
     fun `a 15 plus 30 split break keeps a long driving day compliant`() {
+        // The split must fit inside one 4h30 window: the driving between
+        // the two parts keeps counting towards the window.
         val d = day(
             epochSeconds(LocalDate.of(2025, 1, 20)),
             change(0, Activity.BREAK_OR_REST),
-            change(300, Activity.DRIVING), // 4 h
-            change(540, Activity.BREAK_OR_REST), // 15 min (first split part)
-            change(555, Activity.DRIVING), // 4 h
-            change(795, Activity.BREAK_OR_REST), // 30 min (second part)
-            change(825, Activity.DRIVING), // 2 h
-            change(945, Activity.BREAK_OR_REST),
+            change(300, Activity.DRIVING), // 2 h
+            change(420, Activity.BREAK_OR_REST), // 15 min (first split part)
+            change(435, Activity.DRIVING), // 2 h 15: window reaches 4 h 15
+            change(555, Activity.BREAK_OR_REST), // 30 min (second part)
+            change(585, Activity.DRIVING), // 4 h after the reset
+            change(825, Activity.BREAK_OR_REST),
+            change(945, Activity.DRIVING), // 2 h
+            change(1065, Activity.BREAK_OR_REST),
+        )
+        assertEquals(null, ActivityAnalysis.checkBreaks(d.activityChanges, LocalDate.of(2025, 1, 20)))
+    }
+
+    @Test
+    fun `two thirty minute parts work as a split break`() {
+        val d = day(
+            epochSeconds(LocalDate.of(2025, 1, 20)),
+            change(0, Activity.BREAK_OR_REST),
+            change(300, Activity.DRIVING), // 2 h
+            change(420, Activity.BREAK_OR_REST), // 30 min (first part, >= 15)
+            change(450, Activity.DRIVING), // 2 h: window reaches 4 h
+            change(570, Activity.BREAK_OR_REST), // 30 min (second part)
+            change(600, Activity.DRIVING), // 4 h after the reset
+            change(840, Activity.BREAK_OR_REST),
+            change(960, Activity.DRIVING), // 2 h
+            change(1080, Activity.BREAK_OR_REST),
         )
         assertEquals(null, ActivityAnalysis.checkBreaks(d.activityChanges, LocalDate.of(2025, 1, 20)))
     }
@@ -304,7 +325,7 @@ class ActivityAnalysisTest {
     }
 
     @Test
-    fun `more than 24 hours without a daily rest is a violation`() {
+    fun `a duty stretch over fifteen hours without a rest start is a violation`() {
         val monday = LocalDate.of(2025, 1, 20)
         val days = listOf(
             day(
@@ -326,8 +347,144 @@ class ActivityAnalysisTest {
         )
         val analysis = ActivityAnalysis.analyze(days)
         val violation = analysis.violations.single { it.type == ActivityAnalysis.Violation.Type.DAILY_REST }
-        assertEquals(monday.plusDays(2), violation.date)
-        assertTrue(violation.excessMinutes > 0)
+        // The next rest had to start by Monday 10:00 + 15 h.
+        assertEquals(monday.plusDays(1), violation.date)
+        assertEquals(1380, violation.excessMinutes)
+    }
+
+    @Test
+    fun `a fifteen hour duty stretch stays legal`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        val days = listOf(
+            day(
+                epochSeconds(monday),
+                change(0, Activity.BREAK_OR_REST),
+                change(600, Activity.DRIVING), // 10 h driving
+                change(1200, Activity.WORK), // 4 h work
+            ),
+            day(
+                epochSeconds(monday.plusDays(1)),
+                change(0, Activity.WORK), // 1 h work: duty reaches exactly 15 h
+                change(60, Activity.BREAK_OR_REST),
+            ),
+        )
+        val analysis = ActivityAnalysis.analyze(days)
+        assertTrue(analysis.violations.none { it.type == ActivityAnalysis.Violation.Type.DAILY_REST })
+    }
+
+    @Test
+    fun `a weekly rest must start within six days of the previous one`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        val days = mutableListOf<ActivityDay>()
+        days += day(epochSeconds(monday), change(0, Activity.BREAK_OR_REST)) // 24 h reduced weekly rest
+        for (offset in 1..7) {
+            days += day(
+                epochSeconds(monday.plusDays(offset.toLong())),
+                change(0, Activity.DRIVING),
+                change(600, Activity.BREAK_OR_REST), // 14 h rest nights
+            )
+        }
+        days += day(epochSeconds(monday.plusDays(8)), change(0, Activity.BREAK_OR_REST))
+        val analysis = ActivityAnalysis.analyze(days)
+        val violation = analysis.violations.single {
+            it.type == ActivityAnalysis.Violation.Type.WEEKLY_REST &&
+                it.description == "Next weekly rest started more than six days after the previous one"
+        }
+        assertEquals(monday.plusDays(7), violation.date)
+    }
+
+    @Test
+    fun `a fortnight with fewer than two weekly rests is a violation`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        val days = (0 until 14).map { offset ->
+            day(
+                epochSeconds(monday.plusDays(offset.toLong())),
+                change(0, Activity.DRIVING),
+                change(600, Activity.BREAK_OR_REST), // 14 h rest nights, never a weekly rest
+            )
+        }
+        val analysis = ActivityAnalysis.analyze(days)
+        val violation = analysis.violations.single {
+            it.type == ActivityAnalysis.Violation.Type.WEEKLY_REST &&
+                it.description == "Fewer than two weekly rests in two consecutive weeks"
+        }
+        assertEquals(monday.plusDays(14), violation.date)
+    }
+
+    @Test
+    fun `a reduced weekly rest compensated in time stays legal`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        val days = mutableListOf<ActivityDay>()
+        days += day(epochSeconds(monday), change(0, Activity.BREAK_OR_REST)) // 24 h reduced, owes 21 h
+        for (offset in 1..5) {
+            days += day(
+                epochSeconds(monday.plusDays(offset.toLong())),
+                change(0, Activity.DRIVING),
+                change(600, Activity.BREAK_OR_REST),
+            )
+        }
+        // 48 h regular weekly rest: compensates the reduction (21 h + 9 h attached).
+        days += day(epochSeconds(monday.plusDays(6)), change(0, Activity.BREAK_OR_REST))
+        days += day(epochSeconds(monday.plusDays(7)), change(0, Activity.BREAK_OR_REST))
+        val analysis = ActivityAnalysis.analyze(days)
+        assertTrue(
+            analysis.violations.none {
+                it.type == ActivityAnalysis.Violation.Type.WEEKLY_REST &&
+                    it.description == "Reduced weekly rest not compensated within three weeks"
+            }
+        )
+    }
+
+    @Test
+    fun `an uncompensated reduced weekly rest after the deadline is a violation`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        val days = mutableListOf<ActivityDay>()
+        days += day(epochSeconds(monday), change(0, Activity.BREAK_OR_REST)) // owes 21 h
+        // Duty days without any qualifying compensation rest; the deadline
+        // (end of the fourth week) is inside the data window.
+        for (offset in 1 until 28) {
+            days += day(
+                epochSeconds(monday.plusDays(offset.toLong())),
+                change(0, Activity.DRIVING),
+                change(600, Activity.BREAK_OR_REST),
+            )
+        }
+        val analysis = ActivityAnalysis.analyze(days)
+        assertEquals(
+            1,
+            analysis.violations.count {
+                it.type == ActivityAnalysis.Violation.Type.WEEKLY_REST &&
+                    it.description == "Reduced weekly rest not compensated within three weeks"
+            },
+        )
+    }
+
+    @Test
+    fun `a compensation rest must reach the reduction plus nine attached hours`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        val days = mutableListOf<ActivityDay>()
+        days += day(epochSeconds(monday), change(0, Activity.BREAK_OR_REST)) // owes 21 h
+        for (offset in 1 until 28) {
+            days += day(
+                epochSeconds(monday.plusDays(offset.toLong())),
+                change(0, Activity.DRIVING),
+                change(600, Activity.BREAK_OR_REST),
+            )
+        }
+        // An isolated 24 h rest run: 24 - 9 = 15 h of attachable rest, less
+        // than the 21 h owed, so it does not settle the obligation.
+        days += day(
+            epochSeconds(monday.plusDays(10)),
+            change(0, Activity.BREAK_OR_REST),
+        )
+        val analysis = ActivityAnalysis.analyze(days)
+        assertEquals(
+            1,
+            analysis.violations.count {
+                it.type == ActivityAnalysis.Violation.Type.WEEKLY_REST &&
+                    it.description == "Reduced weekly rest not compensated within three weeks"
+            },
+        )
     }
 
     @Test

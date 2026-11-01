@@ -269,6 +269,24 @@ section { padding: 64px 0; }
 
 .feature p { font-size: 0.92rem; color: var(--text-muted); }
 
+.screens {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+.screens img {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid var(--card-border);
+  display: block;
+}
+.screens figcaption {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
 .rules {
   background: var(--bg-soft);
   border-block: 1px solid var(--card-border);

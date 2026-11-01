@@ -307,6 +307,7 @@ private fun Violation.localizedTitle() = stringResource(
         Violation.Type.TWO_WEEK_DRIVING -> R.string.violation_fortnight
         Violation.Type.BREAK -> R.string.violation_break
         Violation.Type.DAILY_REST -> R.string.violation_daily_rest
+        Violation.Type.WEEKLY_REST -> R.string.violation_weekly_rest
     },
 )
 

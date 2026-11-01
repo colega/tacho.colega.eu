@@ -15,6 +15,26 @@ import javax.smartcardio.TerminalFactory
  * for further analysis.
  */
 fun main(args: Array<String>) {
+    // --demo writes a synthetic card dump (fictional driver, no personal
+    // data) for public screenshots and emulator testing.
+    if ("--analyze" in args) {
+        val argPath = args.getOrNull(args.indexOf("--analyze") + 1) ?: "testdata/card/demo.tcd"
+        val path = if (File(argPath).isAbsolute) argPath else File(repoRoot(), argPath).absolutePath
+        val dump = eu.colega.tacho.core.tachograph.TcdContainer.fromBytes(File(path).readBytes())
+        val card = eu.colega.tacho.core.tachograph.DriverCardParser.parse(dump)
+        val analysis = eu.colega.tacho.core.analysis.ActivityAnalysis.analyze(card.activity)
+        println("days: " + card.activity.size)
+        analysis.violations.forEach { println("" + it.date + " " + it.type + " " + it.description + " (+" + it.excessMinutes + "m)") }
+        if (analysis.violations.isEmpty()) println("no violations")
+        return
+    }
+    if ("--demo" in args) {
+        val root = repoRoot()
+        val dir = File(root, "testdata/card").apply { mkdirs() }
+        File(dir, "demo.tcd").writeBytes(DemoCard.container())
+        println("Demo dump written to ${File(dir, "demo.tcd").absolutePath}")
+        return
+    }
     // The phone's CCID path may talk to the card in T=0 while desktop
     // PC/SC negotiates T=1; --t0 reproduces the phone behaviour here.
     val protocol = if ("--t0" in args) "T=0" else "*"
@@ -43,12 +63,7 @@ fun main(args: Array<String>) {
 
         // Local, git-ignored test asset: the portable container for the
         // emulator import plus the raw elementary files for byte-level work.
-        // Gradle runs this tool with the module directory as cwd, so anchor
-        // the path at the repo root (the directory holding the settings file).
-        val root = generateSequence(File(System.getProperty("user.dir"))) { it.parentFile }
-            .firstOrNull { File(it, "settings.gradle.kts").exists() }
-            ?: File(System.getProperty("user.dir"))
-        val dir = File(root, "testdata/card").apply { mkdirs() }
+        val dir = File(repoRoot(), "testdata/card").apply { mkdirs() }
         File(dir, "card.tcd").writeBytes(eu.colega.tacho.core.tachograph.TcdContainer.toBytes(dump))
         for (fid in dump.fileIds) {
             val bytes = dump.file(fid) ?: continue
@@ -67,6 +82,13 @@ fun main(args: Array<String>) {
         card.disconnect(false)
     }
 }
+
+/** The repo root (the directory holding the settings file); Gradle runs
+ *  this tool with the module directory as cwd, so walk up from there. */
+private fun repoRoot(): File =
+    generateSequence(File(System.getProperty("user.dir"))) { it.parentFile }
+        .firstOrNull { File(it, "settings.gradle.kts").exists() }
+        ?: File(System.getProperty("user.dir"))
 
 /** Logs every APDU exchange in hex for the APDU-level trace. */
 private class LoggingTransceiver(private val card: Card) : ApduTransceiver {
