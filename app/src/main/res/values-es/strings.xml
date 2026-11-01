@@ -30,7 +30,6 @@
     <string name="reading_show_details">Mostrar detalles t\u00e9cnicos</string>
     <string name="reading_hide_details">Ocultar detalles t\u00e9cnicos</string>
     <string name="reading_technical_detail">Fichero elemental %1$s (FID %2$04X)</string>
-    <string name="card_reading">Leyendo la tarjeta con el lector…</string>
     <string name="card_read_reader">Leer tarjeta con el lector</string>
     <string name="card_empty_title">Lee tu tarjeta de conductor</string>
     <string name="card_empty_body">Conecta un lector de tarjetas USB con tu tarjeta de conductor, o abre un fichero de tarjeta que exportases antes. Tus datos se quedan en este dispositivo.</string>

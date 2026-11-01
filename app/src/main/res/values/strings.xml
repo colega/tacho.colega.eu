@@ -30,7 +30,6 @@
     <string name="reading_show_details">Show technical details</string>
     <string name="reading_hide_details">Hide technical details</string>
     <string name="reading_technical_detail">Elementary file %1$s (FID %2$04X)</string>
-    <string name="card_reading">Reading card via reader…</string>
     <string name="card_read_reader">Read card via reader</string>
     <string name="card_empty_title">Read your driver card</string>
     <string name="card_empty_body">Connect a USB card reader with your driver card, or open a card file you exported earlier. Your data stays on this device.</string>

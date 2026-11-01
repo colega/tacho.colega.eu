@@ -9,10 +9,12 @@ import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.LocalActivity
 import androidx.compose.ui.res.stringResource
@@ -47,40 +49,47 @@ fun TachoNavGraph(
     val backStack = navController.currentBackStackEntryAsState()
     val current = backStack.value?.destination?.route ?: TachoDestination.CARD.route
 
-    Scaffold(bottomBar = {
-        NavigationBar {
-            TachoDestination.entries.forEach { destination ->
-                NavigationBarItem(
-                    selected = current == destination.route,
-                    onClick = {
-                        navController.navigate(destination.route) {
-                            popUpTo(TachoDestination.CARD.route) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    icon = {
-                        when (destination) {
-                            TachoDestination.CARD -> Icon(Icons.Filled.CreditCard, null)
-                            TachoDestination.TIMELINE -> Icon(Icons.Filled.Timeline, null)
-                            TachoDestination.CALENDAR -> Icon(Icons.Filled.CalendarMonth, null)
-                            TachoDestination.INSIGHTS -> Icon(Icons.Filled.Insights, null)
-                        }
-                    },
-                    label = {
-                        Text(
-                            when (destination) {
-                                TachoDestination.CARD -> stringResource(R.string.tab_card)
-                                TachoDestination.TIMELINE -> stringResource(R.string.tab_timeline)
-                                TachoDestination.CALENDAR -> stringResource(R.string.tab_calendar)
-                                TachoDestination.INSIGHTS -> stringResource(R.string.tab_insights)
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
+                tonalElevation = 0.dp,
+            ) {
+                TachoDestination.entries.forEach { destination ->
+                    NavigationBarItem(
+                        selected = current == destination.route,
+                        onClick = {
+                            navController.navigate(destination.route) {
+                                popUpTo(TachoDestination.CARD.route) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
                             }
-                        )
-                    },
-                )
+                        },
+                        icon = {
+                            when (destination) {
+                                TachoDestination.CARD -> Icon(Icons.Filled.CreditCard, null)
+                                TachoDestination.TIMELINE -> Icon(Icons.Filled.Timeline, null)
+                                TachoDestination.CALENDAR -> Icon(Icons.Filled.CalendarMonth, null)
+                                TachoDestination.INSIGHTS -> Icon(Icons.Filled.Insights, null)
+                            }
+                        },
+                        label = {
+                            Text(
+                                when (destination) {
+                                    TachoDestination.CARD -> stringResource(R.string.tab_card)
+                                    TachoDestination.TIMELINE -> stringResource(R.string.tab_timeline)
+                                    TachoDestination.CALENDAR -> stringResource(R.string.tab_calendar)
+                                    TachoDestination.INSIGHTS -> stringResource(R.string.tab_insights)
+                                }
+                            )
+                        },
+                    )
+                }
             }
-        }
-    }) { padding ->
+        },
+    ) { padding ->
         NavHost(
             navController = navController,
             startDestination = TachoDestination.CARD.route,

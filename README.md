@@ -32,8 +32,8 @@ insights checked against Regulation (EC) No 561/2006.
   (FID-prefixed elementary files) that can be shared, archived, or re-imported.
 - **Bilingual from day one** — English and Spanish, with a single string
   catalogue per language.
-- **Material 3 UI** — dynamic colour, bottom navigation, built for use in a
-  cab.
+- **Material 3 UI** — a road-green palette, Android splash screen, step-by-step
+  card-read progress, and bottom navigation for cab use.
 
 ## Architecture
 

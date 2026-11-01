@@ -61,6 +61,7 @@ class CardViewModelTest {
         val restored = CardViewModel(repository, context, ioDispatcher)
         assertNotNull(restored.state.value.card)
         assertTrue(restored.state.value.card!!.isV2)
+        assertFalse(restored.state.value.isRestoring)
     }
 
     /** Amended G2 Application_Identification: 17 bytes, structure version {01 01}. */

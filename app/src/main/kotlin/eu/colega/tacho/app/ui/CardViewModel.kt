@@ -24,6 +24,8 @@ import androidx.lifecycle.viewModelScope
 
 /** UI state of the driver card reader. */
 data class CardUiState(
+    /** The last saved card is being restored before the first screen is shown. */
+    val isRestoring: Boolean = false,
     val isReading: Boolean = false,
     val isExporting: Boolean = false,
     val card: DriverCard? = null,
@@ -40,7 +42,7 @@ class CardViewModel @Inject constructor(
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(CardUiState())
+    private val _state = MutableStateFlow(CardUiState(isRestoring = true))
     val state: StateFlow<CardUiState> = _state.asStateFlow()
 
     private var currentDump: DriverCardDump? = null
@@ -48,7 +50,11 @@ class CardViewModel @Inject constructor(
     init {
         // Restore the last read card so data survives process death.
         viewModelScope.launch(ioDispatcher) {
-            repository.loadLastDump(appContext)?.let { onDumpRead(it) }
+            try {
+                repository.loadLastDump(appContext)?.let { onDumpRead(it) }
+            } finally {
+                _state.update { it.copy(isRestoring = false) }
+            }
         }
     }
 

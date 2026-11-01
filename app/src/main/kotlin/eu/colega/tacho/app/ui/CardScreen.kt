@@ -3,7 +3,6 @@ package eu.colega.tacho.app.ui
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,13 +19,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CreditCard
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -95,18 +100,18 @@ fun CardScreen(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 if (state.isExporting) {
-                    CircularProgressIndicator(
-                        Modifier.padding(end = 8.dp).size(16.dp),
-                        strokeWidth = 2.dp,
-                    )
+                    CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                } else {
+                    Icon(Icons.Filled.Download, contentDescription = null, modifier = Modifier.size(18.dp))
                 }
-                Text(stringResource(R.string.card_export_dump))
+                Text(stringResource(R.string.card_export_dump), Modifier.padding(start = 8.dp))
             }
             OutlinedButton(
                 onClick = importPicker { viewModel.importDump(context, it) },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(stringResource(R.string.card_import_dump))
+                Icon(Icons.Filled.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(R.string.card_import_dump), Modifier.padding(start = 8.dp))
             }
         }
     }
@@ -138,16 +143,22 @@ private fun EmptyLanding(
     Column(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = 24.dp),
+            .padding(vertical = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Icon(
-            Icons.Filled.CreditCard,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.primary,
-        )
+        Surface(
+            modifier = Modifier.size(92.dp),
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.primaryContainer,
+        ) {
+            Icon(
+                Icons.Filled.CreditCard,
+                contentDescription = null,
+                modifier = Modifier.padding(18.dp).size(56.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+        }
         Text(
             stringResource(R.string.card_empty_title),
             style = MaterialTheme.typography.headlineSmall,
@@ -158,11 +169,12 @@ private fun EmptyLanding(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 8.dp),
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(4.dp))
         val reader = attachedReader?.collectAsState()?.value
         if (attachedReader != null && onReadViaReader != null && reader != null && canRead) {
             Button(onClick = onReadViaReader, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.card_read_reader))
+                Icon(Icons.Filled.CreditCard, contentDescription = null, modifier = Modifier.size(18.dp))
+                Text(stringResource(R.string.card_read_reader), Modifier.padding(start = 8.dp))
             }
         } else {
             Text(
@@ -172,7 +184,8 @@ private fun EmptyLanding(
             )
         }
         OutlinedButton(onClick = onOpenFile, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.card_import_dump))
+            Icon(Icons.Filled.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
+            Text(stringResource(R.string.card_import_dump), Modifier.padding(start = 8.dp))
         }
     }
 }
@@ -185,25 +198,35 @@ private fun EmptyLanding(
 private fun ReadingProgress(readingFile: Int?) {
     var showTechnical by remember { mutableStateOf(false) }
     Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                CircularProgressIndicator(Modifier.size(20.dp))
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                ) {
+                    Icon(
+                        Icons.Filled.CreditCard,
+                        contentDescription = null,
+                        modifier = Modifier.padding(10.dp).size(22.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
                 Text(
                     stringResource(readingStepLabel(readingFile)),
-                    Modifier.padding(start = 12.dp),
+                    Modifier.padding(start = 12.dp).weight(1f),
                     style = MaterialTheme.typography.bodyLarge,
                 )
             }
-            Text(
-                stringResource(
-                    if (showTechnical) R.string.reading_hide_details else R.string.reading_show_details
-                ),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .clickable { showTechnical = !showTechnical }
-                    .padding(top = 2.dp),
-            )
+            LinearProgressIndicator(Modifier.fillMaxWidth())
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = { showTechnical = !showTechnical }) {
+                    Text(
+                        stringResource(
+                            if (showTechnical) R.string.reading_hide_details else R.string.reading_show_details
+                        ),
+                    )
+                }
+            }
             if (showTechnical) {
                 Text(
                     stringResource(
@@ -243,30 +266,24 @@ private fun readingStepLabel(fid: Int?): Int = when (fid) {
 
 @Composable
 private fun HolderCard(card: DriverCard) {
-    Card(Modifier.fillMaxWidth()) {
-        Row(
-            Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
+    ) {
+        Column(
+            Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            Box(
-                Modifier
-                    .size(56.dp)
-                    .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
-                contentAlignment = Alignment.Center,
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    card.holder.name.initials(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                )
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(card.driverName, style = MaterialTheme.typography.titleLarge)
-                Text(
-                    stringResource(R.string.card_number, card.identification.cardNumber),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                Icon(
+                    Icons.Filled.CreditCard,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp),
+                    tint = MaterialTheme.colorScheme.onPrimary,
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     AssistBadge(
@@ -278,6 +295,38 @@ private fun HolderCard(card: DriverCard) {
                     if (card.isV2) {
                         AssistBadge(text = stringResource(R.string.card_generation_v2))
                     }
+                }
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    Modifier
+                        .size(56.dp)
+                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        card.holder.name.initials(),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
+                Column(
+                    Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        card.driverName,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
+                    Text(
+                        stringResource(R.string.card_number, card.identification.cardNumber),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.82f),
+                    )
                 }
             }
         }
@@ -311,7 +360,19 @@ private fun ValidityCard(card: DriverCard) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(stringResource(R.string.card_validity_title), style = MaterialTheme.typography.titleMedium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.CalendarMonth,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        stringResource(R.string.card_validity_title),
+                        Modifier.padding(start = 8.dp),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
                 expiry?.let { date ->
                     val today = LocalDate.now()
                     val (labelRes, container, content) = when {
@@ -359,7 +420,19 @@ private fun SessionCard(card: DriverCard) {
     val usage = card.currentUsage ?: return
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(stringResource(R.string.card_session_title), style = MaterialTheme.typography.titleMedium)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Filled.AccessTime,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    stringResource(R.string.card_session_title),
+                    Modifier.padding(start = 8.dp),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
             if (usage.sessionOpenTime.seconds > 0) {
                 Text(stringResource(R.string.card_session_opened, usage.sessionOpenTime.displayDateTime()))
                 usage.vehicle.number.takeIf { it.isNotBlank() }?.let {
