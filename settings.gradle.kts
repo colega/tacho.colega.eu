@@ -22,4 +22,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "TachoColega"
 include(":core")
+include(":cli")
 include(":app")
