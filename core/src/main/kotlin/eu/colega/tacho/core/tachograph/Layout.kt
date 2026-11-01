@@ -123,6 +123,9 @@ object Layout {
     const val GNSS_AD_RECORD_G2 = 18 // amended: place record carries odometer
     const val GNSS_AD_RECORD_G1 = 15 // version 1: timestamp + 11-byte place record
     const val LOAD_TYPE_RECORD = 5
+    const val VEHICLE_RECORD_G1 = 31 // no VIN in G1
+    const val PLACE_RECORD_G1 = 10 // no GNSS position in G1
+    const val SPECIFIC_CONDITIONS_G1_SIZE = 280 // 56 x 5, no pointer
     const val PLACE_AUTH_RECORD = 5
     const val GNSS_AUTH_RECORD = 5
     const val BORDER_CROSSING_RECORD = 17
@@ -143,7 +146,6 @@ object Layout {
     val DRIVER_ACTIVITY_G1 = 5548..13780
     val VEHICLES_USED_G1 = 2606..6202 // pointer 2 + n3(84..200) x VehicleRecord(31)
     val PLACES_G1 = 841..1121 // pointer 1 + n4(84..112) x PlaceRecord(10)
-    val SPECIFIC_CONDITIONS_G1 = 280..280 // 56 x SpecificConditionRecord(5), no pointer
 }
 
 /**

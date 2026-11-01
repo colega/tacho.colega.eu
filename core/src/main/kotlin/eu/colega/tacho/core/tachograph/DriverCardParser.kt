@@ -25,15 +25,10 @@ object DriverCardParser {
     fun parse(dump: DriverCardDump): DriverCard {
         val appIdBytes = dump.file(Layout.EF_APPLICATION_IDENTIFICATION)
             ?: throw TruncatedDataException("missing EF Application_Identification")
-        val appIdReader = ByteReader(appIdBytes)
         // cardStructureVersion is 2 bytes: byte 0 = generation, byte 1 = version.
-        val generationByte = (appIdReader.u16At(1) shr 8) and 0xFF
+        val generationByte = (ByteReader(appIdBytes).u16At(1) shr 8) and 0xFF
         val generation = CardStructureVersion.from(generationByte)
-        val appId = if (generation == CardStructureVersion.GENERATION_1) {
-            parseG1ApplicationId(ByteReader(appIdBytes))
-        } else {
-            G2Card.applicationIdentification(ByteReader(appIdBytes))
-        }
+        val appId = parseApplicationId(generation, appIdBytes)
 
         val identification = dump.file(Layout.EF_IDENTIFICATION)?.let {
             val r = ByteReader(it)
@@ -92,10 +87,13 @@ object DriverCardParser {
         val gnssAd = dump.file(Layout.EF_GNSS_PLACES)?.let { bytes ->
             val r = ByteReader(bytes)
             r.skip(2) // gnssADPointerNewestRecord
-            val recordSize = if (r.remaining % Layout.GNSS_AD_RECORD_G2 == 0) {
-                Layout.GNSS_AD_RECORD_G2
-            } else {
-                Layout.GNSS_AD_RECORD_G1
+            // Record size per generation, derived from the declared record
+            // count: 18 bytes in amended G2 (with odometer), 15 in version 1.
+            val recordSize = when {
+                appId.noOfGnssAdRecords == null || appId.noOfGnssAdRecords == 0 -> Layout.GNSS_AD_RECORD_G2
+                r.remaining % appId.noOfGnssAdRecords == 0 ->
+                    r.remaining / appId.noOfGnssAdRecords
+                else -> Layout.GNSS_AD_RECORD_G2
             }
             buildList {
                 while (r.remaining >= recordSize) {
@@ -193,6 +191,19 @@ object DriverCardParser {
             loadUnloadOperations = loadUnload,
             loadTypeEntries = loadTypes,
         )
+    }
+
+    /** Parse the AppId bytes of a card with a known generation. */
+    fun parseApplicationId(generation: CardStructureVersion, bytes: ByteArray): ApplicationIdentification {
+        val reader = ByteReader(bytes)
+        return if (generation == CardStructureVersion.GENERATION_1) {
+            parseG1ApplicationId(reader)
+        } else {
+            // Byte 2 of cardStructureVersion tells version 1 (15-byte AppId)
+            // from version 2 (17-byte AppId with the VU record counter).
+            val isVersion2 = bytes.getOrNull(2)?.toInt()?.and(0xFF)?.let { it >= 1 } == true
+            G2Card.applicationIdentification(reader, includeVehicleUnitRecords = isVersion2)
+        }
     }
 
     /** Generation 1 AppId (10 bytes): no GNSS, specific-condition or VU counts. */

@@ -249,7 +249,7 @@ object G1Card {
     }
 
     private const val VEHICLE_RECORD = 48
-    const val VEHICLE_RECORD_G1 = 31
+    const val VEHICLE_RECORD_G1 = Layout.VEHICLE_RECORD_G1
 
     /** EF Places payload (G2): 2-byte pointer + n 21-byte records. */
     fun places(r: ByteReader): List<PlaceRecord> = placesG2(r)
@@ -270,7 +270,7 @@ object G1Card {
     }
 
     private const val PLACE_RECORD = 21
-    const val PLACE_RECORD_G1 = 10
+    const val PLACE_RECORD_G1 = Layout.PLACE_RECORD_G1
 
     /** EF Specific_Conditions payload (G2): pointer + n 5-byte records. */
     fun specificConditions(r: ByteReader): List<SpecificConditionRecord> = specificConditionsG2(r)

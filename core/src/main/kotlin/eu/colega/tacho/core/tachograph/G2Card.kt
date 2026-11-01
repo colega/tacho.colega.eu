@@ -15,8 +15,14 @@ import eu.colega.tacho.core.card.Nation
  */
 object G2Card {
 
-    /** DriverCardApplicationIdentification (17 bytes). */
-    fun applicationIdentification(r: ByteReader): ApplicationIdentification {
+    /**
+     * DriverCardApplicationIdentification: 15 bytes in version 1, 17 bytes
+     * in version 2 (the amendment added noOfCardVehicleUnitRecords).
+     */
+    fun applicationIdentification(
+        r: ByteReader,
+        includeVehicleUnitRecords: Boolean,
+    ): ApplicationIdentification {
         val type = EquipmentType.from(r.u8())
         val generationByte = r.u8() // 0x00 = G1, 0x01 = G2
         val versionByte = r.u8() // 0x00 = version 1, 0x01 = version 2
@@ -27,7 +33,7 @@ object G2Card {
         val placeRecords = r.u16()
         val gnssAdRecords = r.u16()
         val specificConditions = r.u16()
-        val vehicleUnitRecords = r.u16()
+        val vehicleUnitRecords = if (includeVehicleUnitRecords) r.u16() else 0
         return ApplicationIdentification(
             type,
             CardStructureVersion.from(generationByte),

@@ -77,7 +77,7 @@ class G2CardTest {
         b.writeU16(200) // noOfCardVehicleUnitRecords (added by the amendment)
         assertEquals(Layout.APP_ID_G2, b.size())
 
-        val appId = G2Card.applicationIdentification(ByteReader(b.toByteArray()))
+        val appId = G2Card.applicationIdentification(ByteReader(b.toByteArray()), includeVehicleUnitRecords = true)
         assertEquals(EquipmentType.DRIVER, appId.typeOfTachographCardId)
         assertEquals(1, appId.structureVersionByte) // 0x01 = version 2
         assertEquals(12, appId.noOfEventsPerType)
