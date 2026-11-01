@@ -2,6 +2,8 @@ package eu.colega.tacho.app.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalConfiguration
+import eu.colega.tacho.app.R
+import eu.colega.tacho.core.analysis.ActivityAnalysis
 import eu.colega.tacho.core.card.CardDate
 import eu.colega.tacho.core.card.TimeReal
 import java.time.Instant
@@ -49,3 +51,17 @@ fun CardDate.displayDate(): String =
     } else {
         toString()
     }
+
+/** Minute of day as HH:mm; card activity records are minute resolution. */
+fun minuteOfDayLabel(minutes: Int): String = "%02d:%02d".format(minutes / 60, minutes % 60)
+
+/** Localised label for a rule violation type. */
+@Composable
+fun violationLabelRes(type: ActivityAnalysis.Violation.Type): Int = when (type) {
+    ActivityAnalysis.Violation.Type.DAILY_DRIVING -> R.string.violation_daily_driving
+    ActivityAnalysis.Violation.Type.WEEKLY_DRIVING -> R.string.violation_weekly_driving
+    ActivityAnalysis.Violation.Type.TWO_WEEK_DRIVING -> R.string.violation_fortnight
+    ActivityAnalysis.Violation.Type.BREAK -> R.string.violation_break
+    ActivityAnalysis.Violation.Type.DAILY_REST -> R.string.violation_daily_rest
+    ActivityAnalysis.Violation.Type.WEEKLY_REST -> R.string.violation_weekly_rest
+}

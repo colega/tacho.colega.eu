@@ -300,16 +300,7 @@ private fun Violations(violations: List<Violation>) {
 
 /** Maps an analysis violation type to its localized string resource. */
 @Composable
-private fun Violation.localizedTitle() = stringResource(
-    when (type) {
-        Violation.Type.DAILY_DRIVING -> R.string.violation_daily_driving
-        Violation.Type.WEEKLY_DRIVING -> R.string.violation_weekly_driving
-        Violation.Type.TWO_WEEK_DRIVING -> R.string.violation_fortnight
-        Violation.Type.BREAK -> R.string.violation_break
-        Violation.Type.DAILY_REST -> R.string.violation_daily_rest
-        Violation.Type.WEEKLY_REST -> R.string.violation_weekly_rest
-    },
-)
+private fun Violation.localizedTitle() = stringResource(violationLabelRes(type))
 
 /** Compact hours label that keeps half hours: "9 h" or "9 h 30". */
 internal fun hoursLabel(minutes: Int): String =

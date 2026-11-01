@@ -57,6 +57,15 @@
     <string name="timeline_title">Cronología</string>
     <string name="timeline_empty">Lee una tarjeta para ver su actividad diaria.</string>
     <string name="timeline_driving_hours">%1$s de conducción</string>
+    <string name="timeline_activity_driving">Conducci\u00f3n</string>
+    <string name="timeline_activity_work">Trabajo</string>
+    <string name="timeline_activity_availability">Disponible</string>
+    <string name="timeline_activity_rest">Descanso</string>
+    <string name="timeline_activity_break">Pausa</string>
+    <string name="timeline_activity_unknown">Sin datos de tarjeta</string>
+    <string name="timeline_tap_to_close">Toca para cerrar</string>
+    <string name="timeline_no_records">No hay registros de actividad para este d\u00eda.</string>
+    <string name="timeline_excess_minutes">%1$d min de m\u00e1s</string>
     <string name="timeline_summary">trabajo %1$d h · pausa %2$d min · descanso %3$d h</string>
 
     <!-- Calendario -->

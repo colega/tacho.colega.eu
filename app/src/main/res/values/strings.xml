@@ -57,6 +57,15 @@
     <string name="timeline_title">Timeline</string>
     <string name="timeline_empty">Read a card to see its daily activity.</string>
     <string name="timeline_driving_hours">%1$s driving</string>
+    <string name="timeline_activity_driving">Driving</string>
+    <string name="timeline_activity_work">Work</string>
+    <string name="timeline_activity_availability">Available</string>
+    <string name="timeline_activity_rest">Rest</string>
+    <string name="timeline_activity_break">Break</string>
+    <string name="timeline_activity_unknown">No card data</string>
+    <string name="timeline_tap_to_close">Tap to close</string>
+    <string name="timeline_no_records">No raw activity records for this day.</string>
+    <string name="timeline_excess_minutes">%1$d min over the limit</string>
     <string name="timeline_summary">work %1$d h · break %2$d min · rest %3$d h</string>
 
     <!-- Calendar -->
