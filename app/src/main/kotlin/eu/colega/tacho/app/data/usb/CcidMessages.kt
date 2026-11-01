@@ -22,8 +22,8 @@ object CcidMessages {
 
     const val HEADER_SIZE = 10
 
-    /** Protocols of the message-level protocol preferences: T=0. */
-    const val PROTOCOL_T0 = 0x01
+    /** Protocol preferences for IccPowerOn: let the reader negotiate. */
+    const val PROTOCOL_AUTO = 0x00
 
     /** An ICC is present and active, and the last command succeeded. */
     const val STATUS_OK = 0x00
@@ -42,8 +42,16 @@ object CcidMessages {
         return out.toByteArray()
     }
 
-    fun powerOn(slot: Int, sequence: Int): ByteArray =
-        frame(PC_TO_RDR_ICC_POWER_ON, slot, sequence, byteArrayOf(PROTOCOL_T0.toByte()))
+    /**
+     * IccPowerOn carries the requested protocol in the bError octet of the
+     * header (offset 8), not as payload. Auto lets the reader negotiate,
+     * which is what desktop PC/SC does with the same readers.
+     */
+    fun powerOn(slot: Int, sequence: Int): ByteArray {
+        val out = frame(PC_TO_RDR_ICC_POWER_ON, slot, sequence)
+        out[8] = PROTOCOL_AUTO.toByte()
+        return out
+    }
 
     fun powerOff(slot: Int, sequence: Int): ByteArray =
         frame(PC_TO_RDR_ICC_POWER_OFF, slot, sequence)

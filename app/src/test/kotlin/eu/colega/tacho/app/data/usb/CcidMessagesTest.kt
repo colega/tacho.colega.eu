@@ -10,16 +10,18 @@ import org.junit.Test
 class CcidMessagesTest {
 
     @Test
-    fun `power on frame carries header and T0 protocol preference`() {
+    fun `power on frame is a clean 10 byte header with automatic voltage`() {
         val frame = CcidMessages.powerOn(slot = 0, sequence = 7)
-        assertEquals(CcidMessages.HEADER_SIZE + 1, frame.size)
+        assertEquals(CcidMessages.HEADER_SIZE, frame.size)
         assertEquals(CcidMessages.PC_TO_RDR_ICC_POWER_ON, frame[0].toInt() and 0xFF)
-        // dwLength = 1, little-endian
-        assertArrayEquals(byteArrayOf(1, 0, 0, 0), frame.copyOfRange(1, 5))
+        // dwLength = 0, little-endian: no payload beyond the header.
+        assertArrayEquals(byteArrayOf(0, 0, 0, 0), frame.copyOfRange(1, 5))
         assertEquals(0, frame[5].toInt()) // slot
         assertEquals(7, frame[6].toInt()) // sequence
-        // protocol preference: T=0
-        assertEquals(CcidMessages.PROTOCOL_T0, frame[10].toInt() and 0xFF)
+        // Automatic voltage/protocol selection in the bStatus/bError octets.
+        assertEquals(0, frame[7].toInt())
+        assertEquals(CcidMessages.PROTOCOL_AUTO, frame[8].toInt())
+        assertEquals(0, frame[9].toInt())
     }
 
     @Test

@@ -83,13 +83,6 @@ fun CardScreen(
                     )
                 }
             }
-            state.error?.let { error ->
-                Text(
-                    error,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
         } else {
             HolderCard(card)
             ValidityCard(card)

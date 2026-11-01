@@ -14,7 +14,10 @@ import javax.smartcardio.TerminalFactory
  * APDU is printed, and the elementary files land in tmp/claude/dump/
  * for further analysis.
  */
-fun main() {
+fun main(args: Array<String>) {
+    // The phone's CCID path may talk to the card in T=0 while desktop
+    // PC/SC negotiates T=1; --t0 reproduces the phone behaviour here.
+    val protocol = if ("--t0" in args) "T=0" else "*"
     val terminals = TerminalFactory.getDefault().terminals().list()
     if (terminals.isEmpty()) {
         System.err.println("No PC/SC reader found. Is the card reader plugged in?")
@@ -27,10 +30,10 @@ fun main() {
             return
         }
 
-    val card = terminal.connect("*")
+    val card = terminal.connect(protocol)
     try {
         println("Reader: ${terminal.name}")
-        println("Protocol: ${card.protocol}")
+        println("Protocol: ${card.protocol} (requested $protocol)")
         println("ATR: ${card.atr.bytes.toHex()}")
 
         val reader = LoggingTransceiver(card)

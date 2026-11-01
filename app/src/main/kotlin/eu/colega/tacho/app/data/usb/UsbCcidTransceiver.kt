@@ -6,6 +6,7 @@ import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbEndpoint
 import android.hardware.usb.UsbInterface
 import android.hardware.usb.UsbManager
+import android.util.Log
 import eu.colega.tacho.core.card.ApduTransceiver
 
 /**
@@ -37,7 +38,10 @@ class UsbCcidTransceiver(
         var last: CcidResponse? = null
         repeat(POWER_ON_ATTEMPTS) { attempt ->
             val response = exchange(CcidMessages.powerOn(SLOT, nextSequence()), "ICC power on", tolerateStatus = true)
-            if (response.statusOk) return response.payload
+            if (response.statusOk) {
+                Log.i(TAG, "ICC powered on, ATR ${response.payload.toHex()}")
+                return response.payload
+            }
             last = response
             if (attempt < POWER_ON_ATTEMPTS - 1) {
                 // Poll the slot status: this is what wakes slot handling on
@@ -63,6 +67,7 @@ class UsbCcidTransceiver(
 
     override fun transceive(command: ByteArray): ByteArray {
         val response = exchange(CcidMessages.xfrBlock(command, SLOT, nextSequence()), "APDU exchange")
+        Log.d(TAG, "APDU > ${command.toHex()} / < ${response.payload.toHex()}")
         return response.payload
     }
 
@@ -74,27 +79,51 @@ class UsbCcidTransceiver(
     private fun nextSequence(): Int = sequence++ and 0xFF
 
     private fun exchange(frame: ByteArray, what: String, tolerateStatus: Boolean = false): CcidResponse {
+        val sequence = frame[6].toInt() and 0xFF
+        val expectedType = responseTypeFor(frame[0].toInt() and 0xFF)
         val sent = connection.bulkTransfer(bulkOut, frame, frame.size, TIMEOUT_MS)
         require(sent == frame.size) { "$what: bulk write sent $sent of ${frame.size} bytes" }
 
-        // Responses may span several URBs; accumulate until the frame parses.
+        // Responses and unsolicited notifications share the bulk-IN endpoint.
+        // Only the frame with the expected type and our sequence number is the
+        // answer; everything else (card insert/remove notifications, late
+        // responses of earlier commands) is skipped, because consuming it as
+        // this command's answer desynchronises the whole session.
         val buffer = ByteArray(MAX_RESPONSE_BYTES)
         var received = 0
+        var scanned = 0
         while (true) {
+            if (received - scanned >= CcidMessages.HEADER_SIZE) {
+                val frameEnd = scanned + CcidMessages.HEADER_SIZE + le32(buffer, scanned + 1)
+                if (received >= frameEnd) {
+                    val candidate = CcidMessages.parse(buffer.copyOfRange(scanned, frameEnd))
+                    scanned = frameEnd
+                    if (candidate.messageType == expectedType && candidate.sequence == sequence) {
+                        if (!candidate.statusOk && !tolerateStatus) {
+                            throw IllegalStateException(
+                                "$what: reader reported status 0x%02X (error 0x%02X)".format(
+                                    candidate.status, candidate.error
+                                )
+                            )
+                        }
+                        return candidate
+                    }
+                    Log.w(TAG, "$what: skipping CCID frame type 0x%02X seq %d".format(candidate.messageType, candidate.sequence))
+                    continue
+                }
+            }
             val read = connection.bulkTransfer(bulkIn, buffer, received, buffer.size - received, TIMEOUT_MS)
             if (read <= 0) throw IllegalStateException("$what: no response from reader")
             received += read
-            if (received >= CcidMessages.HEADER_SIZE) {
-                val declared = le32(buffer, 1) + CcidMessages.HEADER_SIZE
-                if (received >= declared) {
-                    val response = CcidMessages.parse(buffer.copyOf(received))
-                    if (!response.statusOk && !tolerateStatus) {
-                        throw IllegalStateException("$what: reader reported status 0x%02X (error 0x%02X)".format(response.status, response.error))
-                    }
-                    return response
-                }
-            }
         }
+    }
+
+    /** The RDR_to_PC message type that answers a given PC_to_RDR request. */
+    private fun responseTypeFor(requestType: Int): Int = when (requestType) {
+        CcidMessages.PC_TO_RDR_GET_SLOT_STATUS,
+        CcidMessages.PC_TO_RDR_ICC_POWER_OFF,
+        -> CcidMessages.RDR_TO_PC_SLOT_STATUS
+        else -> CcidMessages.RDR_TO_PC_DATA_BLOCK
     }
 
     private fun le32(frame: ByteArray, offset: Int): Int =
@@ -104,6 +133,7 @@ class UsbCcidTransceiver(
             ((frame[offset + 3].toInt() and 0xFF) shl 24)
 
     companion object {
+        private const val TAG = "TachoUSB"
         private const val TIMEOUT_MS = 10_000
         private const val MAX_RESPONSE_BYTES = 4096
         private const val SLOT = 0
@@ -136,6 +166,8 @@ class UsbCcidTransceiver(
 
         fun firstReader(usbManager: UsbManager): UsbDevice? =
             usbManager.deviceList.values.firstOrNull { isSmartCardReader(it) }
+
+        private fun ByteArray.toHex(): String = joinToString("") { "%02X".format(it) }
 
         fun open(usbManager: UsbManager, device: UsbDevice): UsbCcidTransceiver {
             val connection = requireNotNull(usbManager.openDevice(device)) { "could not open reader" }
