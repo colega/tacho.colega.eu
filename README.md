@@ -87,6 +87,14 @@ and the 1024×500 feature graphic.
   activity days.
 - **App**: Robolectric tests for the view model and the dump container.
 
+## Card reader and protocol notes
+
+Everything learned about the card transports (USB CCID, PC/SC), the
+ISO 7816 card protocol, generation 2 data encodings, the `.tcd`
+container, the emulator test workflow and the EU driving-time analysis
+lives in [docs/CARD-INTERACTIONS.md](docs/CARD-INTERACTIONS.md). Read it
+before touching the download, the reader or the analysis code.
+
 ## License
 
 Tacolega is free software: you can redistribute it and/or modify it under
