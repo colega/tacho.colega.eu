@@ -25,7 +25,7 @@ class CardDumpReader(
         val isG1 = generation == CardStructureVersion.GENERATION_1
         val files = mutableMapOf<Int, ByteArray>()
 
-        fun read(fid: Int, expectedSize: Int?): ByteArray? = readFile(fid, expectedSize)
+        fun read(fid: Int, expectedSize: Int): ByteArray? = readFile(fid, expectedSize)
 
         // Application_Identification: 10 bytes in G1, 15 in G2 version 1 and
         // 17 in G2 version 2 - read the common part, extend for version 2.
@@ -181,10 +181,10 @@ class CardDumpReader(
         return response.data
     }
 
-    private fun readFile(fid: Int, expectedSize: Int?): ByteArray? {
+    private fun readFile(fid: Int, expectedSize: Int): ByteArray? {
         return try {
             selectEfid(fid)
-            if (expectedSize == null) readToEnd(fid) else readExact(fid, expectedSize)
+            readExact(fid, expectedSize)
         } catch (absent: AbsentFileException) {
             null
         }
@@ -201,20 +201,6 @@ class CardDumpReader(
         }
         if (out.size() != size) {
             throw IllegalStateException("EF %04X delivered %d bytes, expected %d".format(fid, out.size(), size))
-        }
-        return out.toByteArray()
-    }
-
-    /** Read an EF of unknown size until a short read marks the end. */
-    private fun readToEnd(fid: Int): ByteArray {
-        val out = java.io.ByteArrayOutputStream()
-        var offset = 0
-        while (true) {
-            val chunk = readRange(fid, offset, chunkSize)
-            if (chunk.isEmpty()) break
-            out.write(chunk)
-            offset += chunk.size
-            if (chunk.size < chunkSize) break
         }
         return out.toByteArray()
     }
