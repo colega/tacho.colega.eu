@@ -19,6 +19,11 @@ fun LocalDate.displayDate(): String =
         .withLocale(currentLocale())
         .format(this)
 
+/** Compact chart label, e.g. "20 ene". */
+@Composable
+fun LocalDate.displayDateShort(): String =
+    DateTimeFormatter.ofPattern("d MMM", currentLocale()).format(this)
+
 /** Local date-time rendering for card timestamps, e.g. "20 Jan 2025, 14:30". */
 @Composable
 fun TimeReal.displayDateTime(): String {

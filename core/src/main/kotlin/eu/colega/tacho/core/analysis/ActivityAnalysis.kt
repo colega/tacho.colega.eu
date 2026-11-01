@@ -28,7 +28,9 @@ object ActivityAnalysis {
     const val SPLIT_BREAK_SECOND_MIN = 30
     const val DAILY_REST_LIMIT_MIN = 11 * 60
     const val REDUCED_DAILY_REST_MIN = 9 * 60
-    const val MAX_REDUCED_RESTS_PER_WEEK = 3
+    const val MAX_REDUCED_RESTS_BETWEEN_WEEKLY = 3
+    const val REST_WINDOW_MIN = 24L * 60
+    const val WEEKLY_REST_MIN = 45L * 60
 
     /** Activity durations for one calendar day, in minutes. */
     data class DailySummary(
@@ -51,8 +53,10 @@ object ActivityAnalysis {
         val days: List<DailySummary>,
     ) {
         val drivingMinutes: Int get() = days.sumOf { it.drivingMinutes }
+
+        /** Days using the twice-a-week extension: every day over 9 h counts. */
         val extendedDrivingDays: Int
-            get() = days.count { it.drivingMinutes > DAILY_DRIVING_LIMIT_MIN && it.drivingMinutes <= EXTENDED_DAILY_DRIVING_LIMIT_MIN }
+            get() = days.count { it.drivingMinutes > DAILY_DRIVING_LIMIT_MIN }
         val overDailyLimitDays: Int
             get() = days.count { it.drivingMinutes > EXTENDED_DAILY_DRIVING_LIMIT_MIN }
     }
@@ -69,6 +73,7 @@ object ActivityAnalysis {
             WEEKLY_DRIVING,
             TWO_WEEK_DRIVING,
             BREAK,
+            DAILY_REST,
         }
     }
 
@@ -88,7 +93,7 @@ object ActivityAnalysis {
             .filter { (_, summary) -> summary.totalRecordedMinutes > 0 }
         val summaries = byDate.map { it.second }
         val weekly = groupByWeek(summaries)
-        val violations = checkViolations(summaries, weekly, byDate)
+        val violations = checkViolations(summaries, weekly, byDate) + checkRests(days)
         return Analysis(summaries, weekly, violations)
     }
 
@@ -141,13 +146,17 @@ object ActivityAnalysis {
         changesByDay: List<Pair<ActivityDay, DailySummary>>,
     ): List<Violation> {
         val violations = mutableListOf<Violation>()
+        // Daily driving: 9 h may be extended to 10 h at most twice per fixed
+        // week (Regulation 561/2006, Art. 6(1)). A day over 10 h is always a
+        // violation; a day between 9 h and 10 h only becomes one when the
+        // week has more than two such days.
         for (day in summaries) {
-            if (day.drivingMinutes > DAILY_DRIVING_LIMIT_MIN) {
+            if (day.drivingMinutes > EXTENDED_DAILY_DRIVING_LIMIT_MIN) {
                 violations += Violation(
                     Violation.Type.DAILY_DRIVING,
                     day.date,
                     "Daily driving exceeded",
-                    day.drivingMinutes - DAILY_DRIVING_LIMIT_MIN,
+                    day.drivingMinutes - EXTENDED_DAILY_DRIVING_LIMIT_MIN,
                 )
             }
         }
@@ -161,11 +170,15 @@ object ActivityAnalysis {
                 )
             }
             if (week.extendedDrivingDays > MAX_EXTENDED_DAYS_PER_WEEK) {
+                // The third day over 9 h in this week is the violation: it
+                // could not be licensed by the twice-a-week extension.
+                val third = week.days.sortedBy { it.date }
+                    .filter { it.drivingMinutes > DAILY_DRIVING_LIMIT_MIN }[MAX_EXTENDED_DAYS_PER_WEEK]
                 violations += Violation(
                     Violation.Type.DAILY_DRIVING,
-                    week.weekStart,
+                    third.date,
                     "Daily driving extended more than twice in a week",
-                    0,
+                    minOf(third.drivingMinutes, EXTENDED_DAILY_DRIVING_LIMIT_MIN) - DAILY_DRIVING_LIMIT_MIN,
                 )
             }
         }
@@ -243,6 +256,114 @@ object ActivityAnalysis {
         }
         return null
     }
+
+    /**
+     * Daily rest rules (Regulation 561/2006, Art. 8): a daily rest of 11 h,
+     * reducible to 9 h at most three times between two weekly rests.
+     *
+     * Card activity covers whole days, so rest runs are merged across
+     * midnight on an absolute minute timeline. Days without card records
+     * count as rest when the gap is at least a daily rest long: a driver
+     * who removes the card for that long was not working, and treating the
+     * gap as work would raise false violations. The 24 h window is checked
+     * on rest starts, the reading that avoids false positives on drivers
+     * who start their next rest within a day of finishing the previous one.
+     */
+    fun checkRests(days: List<ActivityDay>): List<Violation> {
+        if (days.isEmpty()) return emptyList()
+        val spans = mutableListOf<Span>()
+        for (day in days.sortedBy { epochDay(it.date.seconds).toEpochDay() }) {
+            val date = epochDay(day.date.seconds)
+            val base = date.toEpochDay() * 1440
+            for (i in day.activityChanges.indices) {
+                val change = day.activityChanges[i]
+                val nextStart = day.activityChanges.getOrNull(i + 1)?.minutesOfDay ?: 1440
+                if (nextStart <= change.minutesOfDay) continue
+                spans += Span(base + change.minutesOfDay, base + nextStart, change.activity)
+            }
+        }
+        if (spans.isEmpty()) return emptyList()
+        spans.sortBy { it.startMinute }
+        // Merge overlapping or adjacent spans of the same activity; the gaps
+        // between recorded days become unknown spans.
+        val merged = mutableListOf<Span>()
+        for (span in spans) {
+            val last = merged.lastOrNull()
+            if (last != null && span.startMinute <= last.endMinute && last.activity == span.activity) {
+                // Touching or overlapping spans of one activity are one run;
+                // this is what merges a rest that crosses midnight.
+                merged[merged.size - 1] = last.copy(endMinute = maxOf(last.endMinute, span.endMinute))
+            } else if (last != null && span.startMinute > last.endMinute) {
+                merged += Span(last.endMinute, span.startMinute, Activity.UNKNOWN)
+                merged += span
+            } else {
+                // Overlapping spans of a different activity start where the
+                // previous one ends.
+                val clamped = if (last != null && span.startMinute < last.endMinute) {
+                    span.copy(startMinute = last.endMinute)
+                } else {
+                    span
+                }
+                if (clamped.endMinute > clamped.startMinute) merged += clamped
+            }
+        }
+        val violations = mutableListOf<Violation>()
+        // Qualifying daily rests: rest (or unknown gaps) of at least 9 h.
+        val dailyRests = merged.filter { span ->
+            (span.activity == Activity.BREAK_OR_REST || span.activity == Activity.UNKNOWN) &&
+                span.endMinute - span.startMinute >= REDUCED_DAILY_REST_MIN
+        }
+        // No work stretch without a qualifying rest start within 24 h of the
+        // previous rest's end.
+        for (i in 0 until dailyRests.size - 1) {
+            val gap = dailyRests[i + 1].startMinute - dailyRests[i].endMinute
+            if (gap > REST_WINDOW_MIN) {
+                violations += Violation(
+                    Violation.Type.DAILY_REST,
+                    dateOf(dailyRests[i + 1].startMinute),
+                    "No daily rest within 24 hours",
+                    (gap - REST_WINDOW_MIN).toInt(),
+                )
+            }
+        }
+        // Weekly rests (>= 45 h) reset the reduced-rest allowance; a fourth
+        // reduced rest (9..11 h) between two weekly rests is a violation.
+        val weeklyRests = merged.filter { span ->
+            (span.activity == Activity.BREAK_OR_REST || span.activity == Activity.UNKNOWN) &&
+                span.endMinute - span.startMinute >= WEEKLY_REST_MIN
+        }
+        var reducedSinceWeekly = 0
+        var weeklyIndex = 0
+        for (rest in dailyRests) {
+            val length = rest.endMinute - rest.startMinute
+            while (weeklyIndex < weeklyRests.size && weeklyRests[weeklyIndex].endMinute <= rest.startMinute) {
+                weeklyIndex++
+            }
+            val lastWeeklyEnd = weeklyRests.getOrNull(weeklyIndex - 1)?.endMinute ?: Long.MIN_VALUE
+            if (rest.startMinute >= lastWeeklyEnd) {
+                if (length < DAILY_REST_LIMIT_MIN) {
+                    reducedSinceWeekly++
+                    if (reducedSinceWeekly > MAX_REDUCED_RESTS_BETWEEN_WEEKLY) {
+                        violations += Violation(
+                            Violation.Type.DAILY_REST,
+                            dateOf(rest.startMinute),
+                            "More than three reduced daily rests between weekly rests",
+                            0,
+                        )
+                    }
+                }
+            } else {
+                reducedSinceWeekly = 0
+            }
+        }
+        return violations
+    }
+
+    /** A contiguous activity span on the absolute-minute timeline. */
+    private data class Span(val startMinute: Long, val endMinute: Long, val activity: Activity)
+
+    private fun dateOf(absMinute: Long): LocalDate =
+        Instant.ofEpochSecond(absMinute * 60).atZone(ZoneOffset.UTC).toLocalDate()
 
     private fun epochDay(seconds: Long): LocalDate =
         Instant.ofEpochSecond(seconds).atZone(ZoneOffset.UTC).toLocalDate()

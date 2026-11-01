@@ -1,7 +1,12 @@
 package eu.colega.tacho.app.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -168,6 +173,7 @@ private fun EventFaultRecord.label(): String {
  * Weekly driving hours as simple bars over the weekly limit; the newest week
  * on the right. Pure Compose: no chart library, matches the app's styling.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun WeeklyChart(analysis: ActivityAnalysis.Analysis) {
     val weeks = analysis.weeklySummaries
@@ -179,17 +185,21 @@ private fun WeeklyChart(analysis: ActivityAnalysis.Analysis) {
                 stringResource(R.string.insights_weekly_driving),
                 style = MaterialTheme.typography.titleMedium,
             )
+            // One fixed-width column per week: the card can hold months of
+            // activity, so the row scrolls horizontally instead of squeezing
+            // every week into the screen width.
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .height(120.dp),
+                    .height(120.dp)
+                    .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.Bottom,
             ) {
                 weeks.forEach { week ->
                     val fraction = week.drivingMinutes.toFloat() / maxMinutes
                     Column(
-                        Modifier.weight(1f),
+                        Modifier.width(56.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Spacer(Modifier.weight(1f - fraction))
@@ -206,12 +216,12 @@ private fun WeeklyChart(analysis: ActivityAnalysis.Analysis) {
                                 ),
                         ) {}
                         Text(
-                            stringResource(R.string.insights_week_driving, hoursLabel(week.drivingMinutes)),
+                            hoursLabel(week.drivingMinutes),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         Text(
-                            stringResource(R.string.insights_week_of, week.weekStart.displayDate()),
+                            week.weekStart.displayDateShort(),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -222,16 +232,21 @@ private fun WeeklyChart(analysis: ActivityAnalysis.Analysis) {
                 stringResource(R.string.insights_daily_driving),
                 style = MaterialTheme.typography.titleSmall,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            FlowRow(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 weeks.last().days.forEach { day ->
                     AssistChip(
                         onClick = {},
                         label = { Text("${day.date.dayOfMonth}: ${hoursLabel(day.drivingMinutes)}") },
                         colors = androidx.compose.material3.AssistChipDefaults.assistChipColors(
-                            labelColor = if (day.drivingMinutes > ActivityAnalysis.DAILY_DRIVING_LIMIT_MIN) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
+                            labelColor = when {
+                                day.drivingMinutes > ActivityAnalysis.EXTENDED_DAILY_DRIVING_LIMIT_MIN ->
+                                    MaterialTheme.colorScheme.error
+                                day.drivingMinutes > ActivityAnalysis.DAILY_DRIVING_LIMIT_MIN ->
+                                    MaterialTheme.colorScheme.tertiary
+                                else -> MaterialTheme.colorScheme.onSurfaceVariant
                             },
                         ),
                     )
@@ -291,6 +306,7 @@ private fun Violation.localizedTitle() = stringResource(
         Violation.Type.WEEKLY_DRIVING -> R.string.violation_weekly_driving
         Violation.Type.TWO_WEEK_DRIVING -> R.string.violation_fortnight
         Violation.Type.BREAK -> R.string.violation_break
+        Violation.Type.DAILY_REST -> R.string.violation_daily_rest
     },
 )
 

@@ -24,6 +24,7 @@
     <string name="card_session_title">Sesión actual</string>
     <string name="card_session_opened">Iniciada el %1$s</string>
     <string name="card_session_vehicle">Vehículo %1$s %2$s</string>
+    <string name="card_session_none">Sin sesión abierta</string>
     <string name="card_export_dump">Exportar archivo de tarjeta</string>
     <string name="card_import_dump">Abrir archivo de tarjeta…</string>
 
@@ -50,7 +51,6 @@
     <!-- Análisis -->
     <string name="insights_title">Análisis</string>
     <string name="insights_empty">Lee una tarjeta para analizar los tiempos de conducción.</string>
-    <string name="insights_week_of">Semana del %1$s</string>
     <string name="insights_week_driving">%1$s de conducción</string>
     <string name="insights_no_violations">No se han detectado incumplimientos</string>
     <string name="insights_violations_title">Incumplimientos</string>
@@ -62,6 +62,7 @@
     <string name="violation_daily_driving">Tiempo de conducción diario superado</string>
     <string name="violation_weekly_driving">Tiempo de conducción semanal superado</string>
     <string name="violation_break">Pausa obligatoria tras 4,5 h de conducción</string>
+    <string name="violation_daily_rest">Descanso diario insuficiente</string>
     <string name="violation_fortnight">Tiempo de conducción bisemanal superado</string>
 
     <!-- Errores -->

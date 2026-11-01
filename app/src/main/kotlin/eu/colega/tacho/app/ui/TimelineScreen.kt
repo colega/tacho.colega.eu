@@ -78,10 +78,12 @@ private fun DayRow(summary: ActivityAnalysis.DailySummary) {
             Text(
                 stringResource(R.string.timeline_driving_hours, hoursLabel(summary.drivingMinutes)),
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (summary.drivingMinutes > ActivityAnalysis.DAILY_DRIVING_LIMIT_MIN) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.onSurface
+                color = when {
+                    summary.drivingMinutes > ActivityAnalysis.EXTENDED_DAILY_DRIVING_LIMIT_MIN ->
+                        MaterialTheme.colorScheme.error
+                    summary.drivingMinutes > ActivityAnalysis.DAILY_DRIVING_LIMIT_MIN ->
+                        MaterialTheme.colorScheme.tertiary
+                    else -> MaterialTheme.colorScheme.onSurface
                 },
             )
         }

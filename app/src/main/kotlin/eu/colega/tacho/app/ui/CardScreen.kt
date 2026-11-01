@@ -157,12 +157,10 @@ private fun HolderCard(card: DriverCard) {
 @Composable
 private fun ValidityCard(card: DriverCard) {
     Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(16.dp)) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(stringResource(R.string.card_validity_title), style = MaterialTheme.typography.titleMedium)
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(stringResource(R.string.card_issued, card.identification.cardIssueDate.displayDate()))
-                Text(stringResource(R.string.card_expires, card.identification.cardExpiryDate.displayDate()))
-            }
+            Text(stringResource(R.string.card_issued, card.identification.cardIssueDate.displayDate()))
+            Text(stringResource(R.string.card_expires, card.identification.cardExpiryDate.displayDate()))
             if (card.lastCardDownload.seconds > 0) {
                 Text(
                     stringResource(R.string.card_last_download, card.lastCardDownload.displayDateTime()),
@@ -180,9 +178,16 @@ private fun SessionCard(card: DriverCard) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(stringResource(R.string.card_session_title), style = MaterialTheme.typography.titleMedium)
-            Text(stringResource(R.string.card_session_opened, usage.sessionOpenTime.displayDateTime()))
-            usage.vehicle.number.takeIf { it.isNotBlank() }?.let {
-                Text(stringResource(R.string.card_session_vehicle, usage.vehicle.nation.alpha, it))
+            if (usage.sessionOpenTime.seconds > 0) {
+                Text(stringResource(R.string.card_session_opened, usage.sessionOpenTime.displayDateTime()))
+                usage.vehicle.number.takeIf { it.isNotBlank() }?.let {
+                    Text(stringResource(R.string.card_session_vehicle, usage.vehicle.nation.alpha, it))
+                }
+            } else {
+                Text(
+                    stringResource(R.string.card_session_none),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
     }

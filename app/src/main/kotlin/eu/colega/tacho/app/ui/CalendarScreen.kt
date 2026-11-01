@@ -62,9 +62,12 @@ fun CalendarScreen(
     }
     val monthDays = remember(month) {
         val first = month.atDay(1)
-        // ISO weeks start on Monday; pad before the 1st so columns align.
+        // ISO weeks start on Monday; pad before the 1st and after the last
+        // day so every row has seven cells - a lone cell in the final row
+        // would stretch across the full width.
         val lead = first.dayOfWeek.value - 1
-        List(lead) { null } + (1..month.lengthOfMonth()).map { month.atDay(it) }
+        val days = List(lead) { null } + (1..month.lengthOfMonth()).map { month.atDay(it) }
+        days + List((7 - days.size % 7) % 7) { null }
     }
 
     Column(

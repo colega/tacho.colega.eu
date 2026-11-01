@@ -24,6 +24,7 @@
     <string name="card_session_title">Current session</string>
     <string name="card_session_opened">Opened %1$s</string>
     <string name="card_session_vehicle">Vehicle %1$s %2$s</string>
+    <string name="card_session_none">No session open</string>
     <string name="card_export_dump">Export card file</string>
     <string name="card_import_dump">Open card file…</string>
 
@@ -50,7 +51,6 @@
     <!-- Insights -->
     <string name="insights_title">Insights</string>
     <string name="insights_empty">Read a card to analyse driving times.</string>
-    <string name="insights_week_of">Week of %1$s</string>
     <string name="insights_week_driving">%1$s driving</string>
     <string name="insights_no_violations">No rule violations detected</string>
     <string name="insights_violations_title">Violations</string>
@@ -62,6 +62,7 @@
     <string name="violation_daily_driving">Daily driving time exceeded</string>
     <string name="violation_weekly_driving">Weekly driving time exceeded</string>
     <string name="violation_break">Break required after 4.5 h driving</string>
+    <string name="violation_daily_rest">Daily rest rules not met</string>
     <string name="violation_fortnight">Two-week driving time exceeded</string>
 
     <!-- Errors -->

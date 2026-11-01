@@ -75,7 +75,9 @@ class ActivityAnalysisTest {
     // ---- daily driving limit ---------------------------------------------
 
     @Test
-    fun `flags days with more than nine hours of driving`() {
+    fun `a nine and a half hour day uses the twice a week extension`() {
+        // Regulation 561/2006 Art. 6(1): 9 h may be extended to 10 h twice
+        // per fixed week, so a single 9 h 30 day is legal.
         val monday = LocalDate.of(2025, 1, 20)
         val d = day(
             epochSeconds(monday),
@@ -85,9 +87,80 @@ class ActivityAnalysisTest {
             change(870, Activity.BREAK_OR_REST),
         )
         val analysis = ActivityAnalysis.analyze(listOf(d))
+        assertTrue(analysis.violations.none { it.type == ActivityAnalysis.Violation.Type.DAILY_DRIVING })
+    }
+
+    @Test
+    fun `a day over ten hours of driving is always a violation`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        val d = day(
+            epochSeconds(monday),
+            change(0, Activity.BREAK_OR_REST),
+            change(300, Activity.DRIVING), // 10 h 30 of driving
+            change(930, Activity.BREAK_OR_REST),
+        )
+        val analysis = ActivityAnalysis.analyze(listOf(d))
         val violation = analysis.violations.single { it.type == ActivityAnalysis.Violation.Type.DAILY_DRIVING }
         assertEquals(monday, violation.date)
         assertEquals(30, violation.excessMinutes)
+    }
+
+    @Test
+    fun `a third day over nine hours in one week is a violation`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        fun extendedDay(date: LocalDate): ActivityDay = day(
+            epochSeconds(date),
+            change(0, Activity.BREAK_OR_REST),
+            change(300, Activity.DRIVING),
+            change(870, Activity.BREAK_OR_REST), // 9 h 30
+        )
+        val analysis = ActivityAnalysis.analyze(
+            listOf(
+                extendedDay(monday),
+                extendedDay(monday.plusDays(1)),
+                extendedDay(monday.plusDays(2)),
+            )
+        )
+        val violation = analysis.violations.single { it.type == ActivityAnalysis.Violation.Type.DAILY_DRIVING }
+        assertEquals(monday.plusDays(2), violation.date)
+        assertEquals(30, violation.excessMinutes)
+    }
+
+    @Test
+    fun `two extended days in one week stay legal`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        fun extendedDay(date: LocalDate, drivingEnd: Int): ActivityDay = day(
+            epochSeconds(date),
+            change(0, Activity.BREAK_OR_REST),
+            change(300, Activity.DRIVING),
+            change(drivingEnd, Activity.BREAK_OR_REST),
+        )
+        val analysis = ActivityAnalysis.analyze(
+            listOf(
+                extendedDay(monday, 870), // 9 h 30
+                extendedDay(monday.plusDays(1), 900), // 10 h
+            )
+        )
+        assertTrue(analysis.violations.none { it.type == ActivityAnalysis.Violation.Type.DAILY_DRIVING })
+    }
+
+    @Test
+    fun `extensions do not carry across weeks`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        fun extendedDay(date: LocalDate): ActivityDay = day(
+            epochSeconds(date),
+            change(0, Activity.BREAK_OR_REST),
+            change(300, Activity.DRIVING),
+            change(870, Activity.BREAK_OR_REST), // 9 h 30
+        )
+        val analysis = ActivityAnalysis.analyze(
+            listOf(
+                extendedDay(monday),
+                extendedDay(monday.plusDays(1)),
+                extendedDay(monday.plusDays(7)),
+            )
+        )
+        assertTrue(analysis.violations.none { it.type == ActivityAnalysis.Violation.Type.DAILY_DRIVING })
     }
 
     @Test
@@ -204,5 +277,134 @@ class ActivityAnalysisTest {
         )
         val violation = ActivityAnalysis.checkBreaks(d.activityChanges, LocalDate.of(2025, 1, 20))
         assertEquals(ActivityAnalysis.Violation.Type.BREAK, violation!!.type)
+    }
+
+    // ---- daily rest -------------------------------------------------------
+
+    @Test
+    fun `a long rest spanning midnight counts once`() {
+        // Driving 06:00-22:00 on Monday, then rest to 09:00 Tuesday: the rest
+        // is 2 h on Monday plus 9 h on Tuesday = 11 h in total.
+        val monday = LocalDate.of(2025, 1, 20)
+        val days = listOf(
+            day(
+                epochSeconds(monday),
+                change(0, Activity.UNKNOWN),
+                change(360, Activity.DRIVING),
+                change(1320, Activity.BREAK_OR_REST),
+            ),
+            day(
+                epochSeconds(monday.plusDays(1)),
+                change(540, Activity.WORK),
+                change(600, Activity.BREAK_OR_REST),
+            ),
+        )
+        val analysis = ActivityAnalysis.analyze(days)
+        assertTrue(analysis.violations.none { it.type == ActivityAnalysis.Violation.Type.DAILY_REST })
+    }
+
+    @Test
+    fun `more than 24 hours without a daily rest is a violation`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        val days = listOf(
+            day(
+                epochSeconds(monday),
+                change(0, Activity.BREAK_OR_REST),
+                change(600, Activity.DRIVING), // 10 h driving
+                change(1200, Activity.WORK), // 4 h work
+                change(1440 - 120, Activity.BREAK_OR_REST), // 2 h rest
+            ),
+            day(
+                epochSeconds(monday.plusDays(1)),
+                change(0, Activity.WORK), // 24 h work from Monday 22:00
+                change(1440, Activity.BREAK_OR_REST),
+            ),
+            day(
+                epochSeconds(monday.plusDays(2)),
+                change(0, Activity.BREAK_OR_REST), // rest from Tuesday 24:00
+            ),
+        )
+        val analysis = ActivityAnalysis.analyze(days)
+        val violation = analysis.violations.single { it.type == ActivityAnalysis.Violation.Type.DAILY_REST }
+        assertEquals(monday.plusDays(2), violation.date)
+        assertTrue(violation.excessMinutes > 0)
+    }
+
+    @Test
+    fun `a fourth reduced rest between weekly rests is a violation`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        // Six days, each: 8 h rest, 10 h driving, 4 h work, 2 h rest. The
+        // rest runs merge across midnight to 10 h each: a reduced rest.
+        // The fourth and fifth exceed the three-times allowance.
+        val days = (0 until 6).map { offset ->
+            day(
+                epochSeconds(monday.plusDays(offset.toLong())),
+                change(0, Activity.BREAK_OR_REST),
+                change(480, Activity.DRIVING),
+                change(1080, Activity.WORK),
+                change(1320, Activity.BREAK_OR_REST),
+            )
+        }
+        val analysis = ActivityAnalysis.analyze(days)
+        val violations = analysis.violations.filter { it.type == ActivityAnalysis.Violation.Type.DAILY_REST }
+        assertEquals(2, violations.size)
+        assertEquals(monday.plusDays(3), violations[0].date)
+        assertEquals(monday.plusDays(4), violations[1].date)
+    }
+
+    @Test
+    fun `a weekly rest resets the reduced rest allowance`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        val days = mutableListOf<ActivityDay>()
+        // Three reduced rests, a 48 h weekly rest, then three more.
+        for (offset in 0 until 3) {
+            days += day(
+                epochSeconds(monday.plusDays(offset.toLong())),
+                change(0, Activity.BREAK_OR_REST),
+                change(600, Activity.DRIVING),
+                change(1200, Activity.BREAK_OR_REST),
+            )
+        }
+        days += day(
+            epochSeconds(monday.plusDays(3)),
+            change(0, Activity.BREAK_OR_REST), // 48 h weekly rest
+        )
+        days += day(
+            epochSeconds(monday.plusDays(4)),
+            change(0, Activity.BREAK_OR_REST),
+        )
+        for (offset in 5 until 8) {
+            days += day(
+                epochSeconds(monday.plusDays(offset.toLong())),
+                change(0, Activity.BREAK_OR_REST),
+                change(600, Activity.DRIVING),
+                change(1200, Activity.BREAK_OR_REST),
+            )
+        }
+        val analysis = ActivityAnalysis.analyze(days)
+        assertTrue(analysis.violations.none { it.type == ActivityAnalysis.Violation.Type.DAILY_REST })
+    }
+
+    @Test
+    fun `days without card records count as rest`() {
+        // Monday driven, then two days off card, then work again: the gap is
+        // long enough to be a daily rest.
+        val monday = LocalDate.of(2025, 1, 20)
+        val days = listOf(
+            day(
+                epochSeconds(monday),
+                change(0, Activity.BREAK_OR_REST),
+                change(600, Activity.DRIVING),
+                change(1200, Activity.BREAK_OR_REST),
+            ),
+            day(
+                epochSeconds(monday.plusDays(3)),
+                change(0, Activity.WORK),
+                change(600, Activity.DRIVING),
+                change(1320, Activity.BREAK_OR_REST),
+            ),
+        )
+        val analysis = ActivityAnalysis.analyze(days)
+        assertTrue(analysis.violations.none { it.type == ActivityAnalysis.Violation.Type.DAILY_REST })
     }
 }
