@@ -1,6 +1,7 @@
 package eu.colega.tacho.core.tachograph
 
 import eu.colega.tacho.core.card.ByteReader
+import eu.colega.tacho.core.card.CardStructureVersion
 import eu.colega.tacho.core.card.CardDate
 import eu.colega.tacho.core.card.EntryTypeDailyWorkPeriod
 import eu.colega.tacho.core.card.EquipmentType
@@ -17,28 +18,47 @@ import eu.colega.tacho.core.card.TimeReal
 object G1Card {
 
     /** EF Identification: CardIdentification (65) + DriverCardHolderIdentification (78). */
-    fun identification(r: ByteReader): CardIdentification {
+    fun identification(r: ByteReader, generation: CardStructureVersion): CardIdentification {
         val nation = Nation.from(r.u8())
         val cardNumber = r.ascii(16)
-        val authority = r.ascii(36)
-        val issueDate = CardDate.from(r)
-        val begin = CardDate.from(r)
-        val expiry = CardDate.from(r)
-        return CardIdentification(nation, cardNumber, authority, issueDate, begin, expiry)
+        val authority = name(r, 36, generation)
+        return if (generation == CardStructureVersion.GENERATION_1) {
+            CardIdentification(nation, cardNumber, authority, CardDate.from(r), CardDate.from(r), CardDate.from(r))
+        } else {
+            // Generation 2 stores the validity dates as epoch seconds.
+            CardIdentification(
+                nation,
+                cardNumber,
+                authority,
+                CardDate.fromEpoch(r.u32() ?: 0L),
+                CardDate.fromEpoch(r.u32() ?: 0L),
+                CardDate.fromEpoch(r.u32() ?: 0L),
+            )
+        }
     }
 
-    fun holder(r: ByteReader): HolderName {
-        val surname = r.ascii(36)
-        val firstNames = r.ascii(36)
-        return HolderName(surname, firstNames)
+    /**
+     * Generation 2 Name fields start with a one-byte code page marker;
+     * generation 1 names are plain text of the full field size.
+     */
+    private fun name(r: ByteReader, size: Int, generation: CardStructureVersion): String {
+        if (generation != CardStructureVersion.GENERATION_1) r.u8()
+        return r.ascii(if (generation == CardStructureVersion.GENERATION_1) size else size - 1)
     }
 
     /** holderName (72) + birthDate (4) + preferredLanguage (2) = 78 bytes. */
-    fun holderFull(r: ByteReader): HolderIdentification {
-        val name = holder(r)
+    fun holderFull(r: ByteReader, generation: CardStructureVersion): HolderIdentification {
+        val surname = name(r, 36, generation)
+        val firstNames = name(r, 36, generation)
         val birth = CardDate.from(r)
         val language = r.ascii(2)
-        return HolderIdentification(name, birth, language)
+        return HolderIdentification(HolderName(surname, firstNames), birth, language)
+    }
+
+    fun holder(r: ByteReader, generation: CardStructureVersion): HolderName {
+        val surname = name(r, 36, generation)
+        val firstNames = name(r, 36, generation)
+        return HolderName(surname, firstNames)
     }
 
     /** CardEventRecord / CardFaultRecord (24 bytes each): type, begin, end, vehicle. */

@@ -56,7 +56,9 @@ class CardDumpReader(
                 Layout.EF_CA_CERTIFICATE,
                 Layout.EF_LINK_CERTIFICATE,
             )) {
-                files[fid] = readCertificate(fid) ?: throw missing(fid)
+                // A zero-filled certificate is not issued on this card;
+                // it is left out of the dump.
+                (readCertificate(fid) ?: continue).also { files[fid] = it }
             }
         }
 
@@ -206,24 +208,39 @@ class CardDumpReader(
     }
 
     /**
-     * Certificates are DER structures with a variable length (204..341 in
-     * G2): read the DER header, derive the total size and read the rest.
+     * Certificates are variable-size TLV structures (the outer wrapper is
+     * the ISO 7816-4 certificate template 7F21; older structures use a
+     * plain 0x30 SEQUENCE). Read the header, derive the total size and read
+     * the rest in chunks. A zero-filled EF means the certificate is not
+     * issued on this card (the real card does not disclose sizes any other
+     * way: over-reads answer 6700 without a length), so return null.
      */
-    private fun readCertificate(fid: Int): ByteArray {
+    private fun readCertificate(fid: Int): ByteArray? {
         selectEfid(fid)
-        val head = readRange(fid, 0, 4)
-        require(head[0] == 0x30.toByte()) { "EF %04X does not start with a DER SEQUENCE".format(fid) }
-        val firstLengthByte = head[1].toInt() and 0xFF
+        val head = readRange(fid, 0, 5)
+        if (head.all { it.toInt() == 0 }) return null
+        val (lengthPosition, tagLength) = when (head[0].toInt() and 0xFF) {
+            0x7F -> {
+                require(head[1].toInt() and 0xFF == 0x21) {
+                    "EF %04X does not start with a certificate template".format(fid)
+                }
+                2 to 2
+            }
+            0x30 -> 1 to 1
+            else -> throw IllegalStateException("EF %04X does not start with a certificate".format(fid))
+        }
+        val firstLengthByte = head[lengthPosition].toInt() and 0xFF
         val (headerSize, contentSize) = when {
-            firstLengthByte < 0x80 -> 2 to firstLengthByte
-            firstLengthByte == 0x81 -> 3 to (head[2].toInt() and 0xFF)
-            firstLengthByte == 0x82 -> 4 to ((head[2].toInt() and 0xFF) shl 8 or (head[3].toInt() and 0xFF))
-            else -> throw IllegalStateException("EF %04X uses an unsupported DER length form".format(fid))
+            firstLengthByte < 0x80 -> tagLength + 1 to firstLengthByte
+            firstLengthByte == 0x81 -> tagLength + 2 to (head[lengthPosition + 1].toInt() and 0xFF)
+            firstLengthByte == 0x82 ->
+                tagLength + 3 to ((head[lengthPosition + 1].toInt() and 0xFF) shl 8 or (head[lengthPosition + 2].toInt() and 0xFF))
+            else -> throw IllegalStateException("EF %04X uses an unsupported certificate length form".format(fid))
         }
         val total = headerSize + contentSize
         val out = java.io.ByteArrayOutputStream(total)
-        out.write(head)
-        var offset = head.size
+        out.write(head, 0, minOf(head.size, total))
+        var offset = minOf(head.size, total)
         while (offset < total) {
             val chunk = readRange(fid, offset, minOf(chunkSize, total - offset))
             out.write(chunk)

@@ -35,22 +35,29 @@ class DriverCardParserTest {
 
     private fun identification(): ByteArray {
         val b = ByteArrayOutputStream()
-        // CardIdentification 65 bytes
+        // CardIdentification 65 bytes; generation 2 encodes Name fields
+        // with a leading code page byte and dates as epoch seconds.
         b.write(0x01) // cardIssuingMemberState: Austria
         val cardNumber = "D12345678901234".toByteArray(Charsets.US_ASCII)
         writePadded(b, cardNumber, 16)
-        writePadded(b, "MEIER AUTHORITY".toByteArray(Charsets.US_ASCII), 36)
-        writeDate(b, 25, 5, 10) // issue 2025-05-10
-        writeDate(b, 25, 5, 12) // valid from 2025-05-12
-        writeDate(b, 30, 5, 11) // expiry 2030-05-11
+        writeName(b, "MEIER AUTHORITY", 36)
+        writeU32(b, 1746842401) // issue 2025-05-10
+        writeU32(b, 1747015201) // valid from 2025-05-12
+        writeU32(b, 1778582401) // expiry 2030-05-11
         assertEquals(65, b.size())
         // DriverCardHolderIdentification 78 bytes
-        writePadded(b, "MEIER".toByteArray(Charsets.US_ASCII), 36)
-        writePadded(b, "HANS PETER".toByteArray(Charsets.US_ASCII), 36)
-        writeDate(b, 80, 1, 15)
+        writeName(b, "MEIER", 36)
+        writeName(b, "HANS PETER", 36)
+        writeDate(b, 80, 1, 15) // birth date stays BCD in generation 2
         writePadded(b, "de".toByteArray(Charsets.US_ASCII), 2)
         assertEquals(143, b.size())
         return b.toByteArray()
+    }
+
+    /** A generation 2 Name: one code page byte + the text, space padded. */
+    private fun writeName(b: ByteArrayOutputStream, text: String, size: Int) {
+        b.write(0x01)
+        writePadded(b, text.toByteArray(Charsets.ISO_8859_1), size - 1)
     }
 
     private fun eventRecord(type: Int, begin: Long, end: Long, nation: Int, vrn: String): ByteArray {

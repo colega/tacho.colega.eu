@@ -43,6 +43,13 @@ data class CardDate(val year: Int, val month: Int, val day: Int) {
             val d = r.bcd()
             return CardDate(y, m, d)
         }
+
+        /** Generation 2 stores validity dates as epoch seconds (UTC). */
+        fun fromEpoch(seconds: Long): CardDate {
+            val date = java.time.Instant.ofEpochSecond(seconds)
+                .atZone(java.time.ZoneOffset.UTC).toLocalDate()
+            return CardDate(date.year, date.monthValue, date.dayOfMonth)
+        }
     }
 }
 

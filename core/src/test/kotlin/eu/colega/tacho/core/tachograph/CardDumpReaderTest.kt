@@ -83,15 +83,25 @@ class CardDumpReaderTest {
 
     private fun sampleFile(size: Int, seed: Int) = ByteArray(size) { ((it + seed) and 0xFF).toByte() }
 
-    /** DER-encoded certificate of an exact total size (4-byte long-form header). */
+    /**
+     * Certificate of an exact total size wrapped in the ISO 7816-4
+     * certificate template tag 7F21, as real cards use. Sizes up to 255
+     * bytes of content use the 81 length form, larger ones the 82 form.
+     */
     private fun derCert(size: Int, seed: Int): ByteArray {
-        val content = size - 4
+        val content = if (size - 4 < 256) size - 4 else size - 5
         val out = ByteArray(size)
-        out[0] = 0x30.toByte()
-        out[1] = 0x82.toByte()
-        out[2] = ((content shr 8) and 0xFF).toByte()
-        out[3] = (content and 0xFF).toByte()
-        sampleFile(content, seed).copyInto(out, 4)
+        out[0] = 0x7F.toByte()
+        out[1] = 0x21.toByte()
+        if (content < 256) {
+            out[2] = 0x81.toByte()
+            out[3] = content.toByte()
+        } else {
+            out[2] = 0x82.toByte()
+            out[3] = ((content shr 8) and 0xFF).toByte()
+            out[4] = (content and 0xFF).toByte()
+        }
+        sampleFile(content, seed).copyInto(out, size - content)
         return out
     }
 
@@ -130,7 +140,7 @@ class CardDumpReaderTest {
 
     private fun populateG2v2(card: ScriptedCard) {
         card.files[Layout.EF_APPLICATION_IDENTIFICATION] = g2v2AppId()
-        card.files[Layout.EF_CARD_MA_CERTIFICATE] = derCert(204, 1)
+        card.files[Layout.EF_CARD_MA_CERTIFICATE] = derCert(205, 1)
         card.files[Layout.EF_CARD_SIGN_CERTIFICATE] = derCert(229, 2)
         card.files[Layout.EF_CA_CERTIFICATE] = derCert(271, 3)
         card.files[Layout.EF_LINK_CERTIFICATE] = derCert(341, 4)
@@ -286,6 +296,15 @@ class CardDumpReaderTest {
     }
 
     @Test
+    fun `a zero-filled link certificate is skipped`() {
+        val card = ScriptedCard()
+        populateG2v2(card)
+        card.files[Layout.EF_LINK_CERTIFICATE] = ByteArray(205) // not issued on this card
+        val dump = CardDumpReader(card).readDriverCard()
+        assertEquals(false, dump.has(Layout.EF_LINK_CERTIFICATE))
+    }
+
+    @Test
     fun `no tachograph application on the card fails loudly`() {
         val card = ScriptedCard().apply { rejectAid = true }
         val exception = runCatching { CardDumpReader(card).readDriverCard() }.exceptionOrNull()
@@ -297,11 +316,12 @@ class CardDumpReaderTest {
         val card = ScriptedCard()
         populateG2v2(card)
         val dump = CardDumpReader(card).readDriverCard()
-        // The four G2 certificates were built with different lengths.
-        assertEquals(204, dump.file(Layout.EF_CARD_MA_CERTIFICATE)!!.size)
+        // The four G2 certificates were built with different lengths and
+        // both long-form length encodings.
+        assertEquals(205, dump.file(Layout.EF_CARD_MA_CERTIFICATE)!!.size)
         assertEquals(229, dump.file(Layout.EF_CARD_SIGN_CERTIFICATE)!!.size)
         assertEquals(271, dump.file(Layout.EF_CA_CERTIFICATE)!!.size)
         assertEquals(341, dump.file(Layout.EF_LINK_CERTIFICATE)!!.size)
-        assertEquals(0x30, dump.file(Layout.EF_CARD_MA_CERTIFICATE)!![0].toInt())
+        assertEquals(0x7F, dump.file(Layout.EF_CARD_MA_CERTIFICATE)!![0].toInt())
     }
 }

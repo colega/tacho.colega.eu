@@ -31,13 +31,12 @@ object DriverCardParser {
         val appId = parseApplicationId(generation, appIdBytes)
 
         val identification = dump.file(Layout.EF_IDENTIFICATION)?.let {
-            val r = ByteReader(it)
-            G1Card.identification(r)
+            G1Card.identification(ByteReader(it), generation)
         }
         val holder = dump.file(Layout.EF_IDENTIFICATION)?.let {
             val r = ByteReader(it)
             r.skip(65) // CardIdentification
-            G1Card.holderFull(r)
+            G1Card.holderFull(r, generation)
         }
 
         val events = dump.file(Layout.EF_EVENTS_DATA)?.let {
