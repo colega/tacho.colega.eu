@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Tacho Colega</string>
+    <string name="app_name">Tacolega</string>
 
     <!-- Bottom navigation -->
     <string name="tab_card">Card</string>

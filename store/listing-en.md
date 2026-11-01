@@ -1,13 +1,13 @@
 # Play Store listing — English
 
 ## App title (max 30 chars)
-Tacho Colega — tachograph card
+Tacolega — tachograph card
 
 ## Short description (max 80 chars)
 Download your EU tachograph card over NFC. Timeline, calendar and driving-time insights.
 
 ## Full description
-Tacho Colega turns your European tachograph card into something you can actually use.
+Tacolega turns your European tachograph card into something you can actually use.
 
 Hold your driver card against the back of your NFC phone and the app reads every file
 on it — no cables, no PC, no workshop visit.
@@ -40,6 +40,6 @@ PRIVACY
 Your card data never leaves the phone unless you export it yourself. No account,
 no tracking, no uploads.
 
-Note: Tacho Colega is an independent tool for drivers. It is not official equipment
+Note: Tacolega is an independent tool for drivers. It is not official equipment
 under Regulation (EU) 165/2014 and does not replace the vehicle unit or any official
 record.

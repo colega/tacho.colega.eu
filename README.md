@@ -1,8 +1,8 @@
-# Tacho Colega
+# Tacolega
 
 **Read and understand your EU tachograph card — straight from your phone.**
 
-Tacho Colega is an Android app that downloads the contents of a European
+Tacolega is an Android app that downloads the contents of a European
 Union driver tachograph card through a USB card reader and turns it into
 something a driver can actually use: a daily timeline, a month calendar, and driving-time
 insights checked against Regulation (EC) No 561/2006.
@@ -89,6 +89,6 @@ and the 1024×500 feature graphic.
 
 ## License
 
-Tacho Colega is free software: you can redistribute it and/or modify it under
+Tacolega is free software: you can redistribute it and/or modify it under
 the terms of the [GNU General Public License v3](LICENSE) as published by the
 Free Software Foundation.

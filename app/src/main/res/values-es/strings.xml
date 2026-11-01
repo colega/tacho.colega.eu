@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Tacho Colega</string>
+    <string name="app_name">Tacolega</string>
 
     <!-- Navegación inferior -->
     <string name="tab_card">Tarjeta</string>

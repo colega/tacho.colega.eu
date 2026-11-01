@@ -1,13 +1,13 @@
 # Play Store listing — Spanish
 
 ## Título de la app (máx. 30 caracteres)
-Tacho Colega — tarjeta tacógrafo
+Tacolega — tarjeta tacógrafo
 
 ## Descripción corta (máx. 80 caracteres)
 Descarga tu tarjeta de tacógrafo UE por NFC. Cronología, calendario y análisis.
 
 ## Descripción completa
-Tacho Colega convierte tu tarjeta de tacógrafo europea en algo que de verdad puedes usar.
+Tacolega convierte tu tarjeta de tacógrafo europea en algo que de verdad puedes usar.
 
 Apoya tu tarjeta de conductor en la parte trasera de tu teléfono con NFC y la app lee
 todos sus archivos: sin cables, sin PC, sin visita al taller.
@@ -41,6 +41,6 @@ PRIVACIDAD
 Los datos de tu tarjeta nunca salen del teléfono salvo que tú los exportes. Sin cuenta,
 sin rastreo, sin subidas.
 
-Nota: Tacho Colega es una herramienta independiente para conductores. No es un equipo
+Nota: Tacolega es una herramienta independiente para conductores. No es un equipo
 oficial conforme al Reglamento (UE) 165/2014 y no sustituye a la unidad de vehículo ni a
 ningún registro oficial.
