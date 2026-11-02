@@ -171,8 +171,11 @@ resolution from the card's activity change records:
   minute timeline. A work stretch beyond 24 h without a qualifying
   rest start is a violation; a fourth reduced rest (9-11 h) between
   weekly rests (>= 45 h) is a violation. Gaps without card records
-  count as rest when at least 9 h long. The reduced weekly rest
-  (24 h every second week with compensation) is NOT implemented.
+  count as rest when at least 9 h long.
+- Weekly rest (Art. 8): 24 h qualifies as reduced and 45 h as regular.
+  A fortnight with no recorded duty does not trigger a missing-rest
+  warning. A continuous 90 h rest within a fortnight can satisfy two
+  regular weekly rests. Reduced-rest compensation is also checked.
 - Colour language across the UI: green = normal driving day,
   amber = extension used (9-10 h), red = over 10 h, blue = rest.
   9-10 h days must not be red.

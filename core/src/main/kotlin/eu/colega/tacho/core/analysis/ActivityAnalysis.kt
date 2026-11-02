@@ -378,10 +378,23 @@ object ActivityAnalysis {
             val fortnightStart = pairStart.toEpochDay() * 1440
             val fortnightEnd = nextWeekStart.plusDays(7).toEpochDay() * 1440
             if (fortnightStart < firstDataWeek.toEpochDay() * 1440 || fortnightEnd > dataEnd) continue
+            // A fortnight with no duty is already accounted for as rest.
+            val hasDuty = merged.any { span ->
+                span.startMinute < fortnightEnd &&
+                    span.endMinute > fortnightStart &&
+                    (span.activity == Activity.DRIVING ||
+                        span.activity == Activity.WORK ||
+                        span.activity == Activity.AVAILABILITY)
+            }
             val overlapping = weeklyRests.filter {
                 it.startMinute < fortnightEnd && it.endMinute > fortnightStart
             }
-            if (overlapping.size >= 2) {
+            // One continuous rest can be split into two regular weekly rests.
+            val longRestCoversTwo = overlapping.size == 1 &&
+                minOf(overlapping[0].endMinute, fortnightEnd) -
+                    maxOf(overlapping[0].startMinute, fortnightStart) >=
+                    2 * WEEKLY_REST_REGULAR_MIN
+            if (hasDuty && (overlapping.size >= 2 || longRestCoversTwo)) {
                 val regular = overlapping.count { it.endMinute - it.startMinute >= WEEKLY_REST_REGULAR_MIN }
                 if (regular == 0) {
                     // Two consecutive reduced weekly rests: legal only under
@@ -400,7 +413,7 @@ object ActivityAnalysis {
                         )
                     }
                 }
-            } else {
+            } else if (hasDuty) {
                 violations += Violation(
                     Violation.Type.WEEKLY_REST,
                     dateOf(fortnightEnd),

@@ -412,6 +412,98 @@ class ActivityAnalysisTest {
     }
 
     @Test
+    fun `a continuous month off does not create fortnightly rest warnings`() {
+        val monday = LocalDate.of(2026, 4, 20)
+        val days = (0 until 28).map { offset ->
+            day(
+                epochSeconds(monday.plusDays(offset.toLong())),
+                change(0, Activity.BREAK_OR_REST),
+            )
+        }
+        val analysis = ActivityAnalysis.analyze(days)
+        assertTrue(analysis.violations.none { it.type == ActivityAnalysis.Violation.Type.WEEKLY_REST })
+    }
+
+    @Test
+    fun `fortnightly rest checks still apply to work without driving`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        val days = (0 until 14).map { offset ->
+            day(
+                epochSeconds(monday.plusDays(offset.toLong())),
+                change(0, Activity.WORK),
+                change(600, Activity.BREAK_OR_REST), // 14 h rest each day
+            )
+        }
+        val analysis = ActivityAnalysis.analyze(days)
+        assertTrue(
+            analysis.violations.any {
+                it.type == ActivityAnalysis.Violation.Type.WEEKLY_REST &&
+                    it.description == "Fewer than two weekly rests in two consecutive weeks"
+            }
+        )
+    }
+
+    @Test
+    fun `a 90 hour rest after duty satisfies two weekly rests`() {
+        val monday = LocalDate.of(2026, 3, 23)
+        val days = (0 until 14).map { offset ->
+            val date = monday.plusDays(offset.toLong())
+            when (offset) {
+                in 0..2 -> day(
+                    epochSeconds(date),
+                    change(0, Activity.DRIVING),
+                    change(240, Activity.BREAK_OR_REST), // 45-minute break
+                    change(285, Activity.DRIVING),
+                    change(480, Activity.BREAK_OR_REST),
+                )
+                in 3..5 -> day(epochSeconds(date), change(0, Activity.BREAK_OR_REST))
+                6 -> day(
+                    epochSeconds(date),
+                    change(0, Activity.BREAK_OR_REST),
+                    change(120, Activity.WORK),
+                    change(600, Activity.BREAK_OR_REST),
+                )
+                else -> day(
+                    epochSeconds(date),
+                    change(0, Activity.WORK),
+                    change(600, Activity.BREAK_OR_REST),
+                )
+            }
+        }
+        val analysis = ActivityAnalysis.analyze(days)
+        assertTrue(analysis.violations.none { it.type == ActivityAnalysis.Violation.Type.WEEKLY_REST })
+    }
+
+    @Test
+    fun `an 89 hour rest cannot replace two weekly rests`() {
+        val monday = LocalDate.of(2025, 1, 20)
+        val days = (0 until 14).map { offset ->
+            val date = monday.plusDays(offset.toLong())
+            when {
+                offset in 2..4 -> day(epochSeconds(date), change(0, Activity.BREAK_OR_REST))
+                offset == 5 -> day(
+                    epochSeconds(date),
+                    change(0, Activity.BREAK_OR_REST),
+                    change(180, Activity.WORK),
+                    change(600, Activity.BREAK_OR_REST),
+                )
+                else -> day(
+                    epochSeconds(date),
+                    change(0, Activity.WORK),
+                    change(600, Activity.BREAK_OR_REST),
+                )
+            }
+        }
+        val analysis = ActivityAnalysis.analyze(days)
+        assertTrue(
+            analysis.violations.any {
+                it.type == ActivityAnalysis.Violation.Type.WEEKLY_REST &&
+                    it.description == "Fewer than two weekly rests in two consecutive weeks"
+            }
+        )
+    }
+
+    @Test
     fun `a reduced weekly rest compensated in time stays legal`() {
         val monday = LocalDate.of(2025, 1, 20)
         val days = mutableListOf<ActivityDay>()
