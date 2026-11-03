@@ -8,12 +8,17 @@ plugins {
     alias(libs.plugins.serialization)
 }
 
-// Release signing is provided by a git-ignored keystore.properties at the repo
-// root (storeFile, storePassword, keyAlias, keyPassword). Without it, release
-// builds fall back to the debug key so CI can still produce artifacts.
+// Release APKs may use the debug key in CI. Play bundles require a real upload key.
 val keystoreProperties = Properties().apply {
     val f = rootProject.file("keystore.properties")
     if (f.exists()) f.inputStream().use { load(it) }
+}
+
+val playBundleRequested = gradle.startParameter.taskNames.any { it.substringAfterLast(':') == "bundleRelease" }
+if (playBundleRequested && keystoreProperties.isEmpty()) {
+    throw org.gradle.api.GradleException(
+        "keystore.properties with a production upload key is required for Play bundles"
+    )
 }
 
 android {

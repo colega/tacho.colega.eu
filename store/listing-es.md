@@ -4,17 +4,17 @@
 Tacolega — tarjeta tacógrafo
 
 ## Descripción corta (máx. 80 caracteres)
-Descarga tu tarjeta de tacógrafo UE por NFC. Cronología, calendario y análisis.
+Lee tu tarjeta de tacógrafo con un lector USB. Cronología, calendario, análisis.
 
 ## Descripción completa
 Tacolega convierte tu tarjeta de tacógrafo europea en algo que de verdad puedes usar.
 
-Apoya tu tarjeta de conductor en la parte trasera de tu teléfono con NFC y la app lee
-todos sus archivos: sin cables, sin PC, sin visita al taller.
+Conecta un lector USB CCID compatible a tu teléfono Android con USB OTG e
+inserta tu tarjeta. También puedes abrir un archivo `.tcd` exportado antes.
 
 QUÉ OBTIENES
 
-• Resumen de la tarjeta: titular, número, fechas de validez, sesión actual y versión.
+• Resumen de la tarjeta: titular, número, validez, último uso del vehículo y versión.
 • Cronología: cada día como una barra de 24 h con código de color: conducción, trabajo,
   disponibilidad, pausa y descanso.
 • Calendario: vista mensual donde cada día se colorea según lo que condujiste.
@@ -34,13 +34,19 @@ COMPATIBLE CON
 
 • Tarjetas de conductor, generación 1 y 2 (tacógrafo inteligente)
 • El diseño de la enmienda de 2021: cruces de frontera, carga y descarga y archivos GNSS
-• Cualquier teléfono con NFC (Android 8.0 o superior)
+• Android 8.0 o superior; USB host/OTG y lector CCID compatible para lectura
+  directa, o archivos `.tcd` para abrir
 
 PRIVACIDAD
 
-Los datos de tu tarjeta nunca salen del teléfono salvo que tú los exportes. Sin cuenta,
-sin rastreo, sin subidas.
+Los datos se procesan y guardan en tu teléfono. Tacolega no los envía a ningún
+servidor. La copia guardada se excluye de las copias de seguridad de Android.
+Al exportar o compartir, la app que elijas recibe una copia. Sin cuenta,
+anuncios ni rastreo.
 
 Nota: Tacolega es una herramienta independiente para conductores. No es un equipo
 oficial conforme al Reglamento (UE) 165/2014 y no sustituye a la unidad de vehículo ni a
 ningún registro oficial.
+
+## URL de la política de privacidad
+https://tacho.colega.eu/privacy-es.html

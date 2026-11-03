@@ -20,7 +20,7 @@
     <string name="reading_activity">Reading your daily driving activity\u2026</string>
     <string name="reading_vehicles">Reading the vehicles you have driven\u2026</string>
     <string name="reading_places">Reading the places where work started and ended\u2026</string>
-    <string name="reading_session">Reading your current session\u2026</string>
+    <string name="reading_session">Reading the last recorded vehicle use…</string>
     <string name="reading_control">Reading control activity records\u2026</string>
     <string name="reading_specific">Reading special conditions such as ferry crossings\u2026</string>
     <string name="reading_vehicle_units">Reading the vehicle units used\u2026</string>
@@ -41,16 +41,18 @@
     <string name="card_issued">Issued %1$s</string>
     <string name="card_expires">Expires %1$s</string>
     <string name="card_last_download">Last downloaded %1$s</string>
-    <string name="card_session_title">Current session</string>
-    <string name="card_session_opened">Opened %1$s</string>
+    <string name="card_session_title">Last recorded vehicle use</string>
+    <string name="card_session_opened">Started %1$s</string>
     <string name="card_session_vehicle">Vehicle %1$s %2$s</string>
-    <string name="card_session_none">No session open</string>
+    <string name="card_session_none">No vehicle use recorded</string>
     <string name="card_export_dump">Export card file</string>
     <string name="card_empty_no_reader">Connect a USB card reader to read a card.</string>
     <string name="card_status_valid">Valid</string>
     <string name="card_status_expiring">Expires soon</string>
     <string name="card_status_expired">Expired</string>
     <string name="card_import_dump">Open card file…</string>
+    <string name="privacy_policy">Privacy policy</string>
+    <string name="privacy_policy_url">https://tacho.colega.eu/privacy.html</string>
 
     <!-- Timeline -->
     <string name="timeline_title">Timeline</string>

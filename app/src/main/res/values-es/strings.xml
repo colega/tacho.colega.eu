@@ -20,7 +20,7 @@
     <string name="reading_activity">Leyendo tu actividad de conducci\u00f3n diaria\u2026</string>
     <string name="reading_vehicles">Leyendo los veh\u00edculos que has conducido\u2026</string>
     <string name="reading_places">Leyendo los lugares de inicio y fin de trabajo\u2026</string>
-    <string name="reading_session">Leyendo tu sesi\u00f3n actual\u2026</string>
+    <string name="reading_session">Leyendo el último uso registrado del vehículo…</string>
     <string name="reading_control">Leyendo los registros de control\u2026</string>
     <string name="reading_specific">Leyendo condiciones especiales como transbordadores\u2026</string>
     <string name="reading_vehicle_units">Leyendo las Unidades de Veh\u00edculo usadas\u2026</string>
@@ -41,16 +41,18 @@
     <string name="card_issued">Emitida el %1$s</string>
     <string name="card_expires">Caduca el %1$s</string>
     <string name="card_last_download">Última descarga %1$s</string>
-    <string name="card_session_title">Sesión actual</string>
-    <string name="card_session_opened">Iniciada el %1$s</string>
+    <string name="card_session_title">Último uso registrado del vehículo</string>
+    <string name="card_session_opened">Inicio %1$s</string>
     <string name="card_session_vehicle">Vehículo %1$s %2$s</string>
-    <string name="card_session_none">Sin sesión abierta</string>
+    <string name="card_session_none">No hay uso de vehículo registrado</string>
     <string name="card_export_dump">Exportar archivo de tarjeta</string>
     <string name="card_empty_no_reader">Conecta un lector de tarjetas USB para leer una tarjeta.</string>
     <string name="card_status_valid">V\u00e1lida</string>
     <string name="card_status_expiring">Caduca pronto</string>
     <string name="card_status_expired">Caducada</string>
     <string name="card_import_dump">Abrir archivo de tarjeta…</string>
+    <string name="privacy_policy">Política de privacidad</string>
+    <string name="privacy_policy_url">https://tacho.colega.eu/privacy-es.html</string>
 
     <!-- Cronología -->
     <string name="timeline_title">Cronología</string>

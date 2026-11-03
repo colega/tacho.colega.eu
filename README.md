@@ -11,7 +11,7 @@ insights checked against Regulation (EC) No 561/2006.
 |---|---|---|---|
 | ![](docs/screenshots/card.png) | ![](docs/screenshots/timeline.png) | ![](docs/screenshots/calendar.png) | ![](docs/screenshots/insights.png) |
 
-- **Card** — holder, validity, current session, file export and import.
+- **Card** — holder, validity, last recorded vehicle use, file export and import.
 - **Timeline** — daily activity as a colour-coded 24 h bar.
 - **Calendar** — month view with driving intensity per day.
 - **Insights** — weekly totals and EU rule violations.
@@ -58,7 +58,7 @@ and load/unload files introduced for version 2 cards.
 ```bash
 ./gradlew :app:assembleDebug     # debug APK
 ./gradlew test                   # all unit tests (core + app, Robolectric)
-./gradlew :app:assembleRelease   # release APK (needs signing config)
+./gradlew :app:bundleRelease    # Play AAB (requires keystore.properties)
 ```
 
 Requirements: JDK 17+, Android SDK (compileSdk 37). `local.properties` points
@@ -75,10 +75,12 @@ keyAlias=upload
 keyPassword=…
 ```
 
-`./gradlew :app:assembleRelease` then signs with that key. Without the file,
-release builds fall back to the debug key (CI-friendly). Play Store listing
-text lives in `store/` (English and Spanish), together with the 512 px icon
-and the 1024×500 feature graphic.
+`./gradlew :app:bundleRelease` builds a signed Play upload bundle and requires
+a real upload key in `keystore.properties`. Keep the key and passwords out of
+source control. Use Play App Signing for distribution. `assembleRelease` may
+use the debug key for CI; do not upload that APK.
+
+The Play listing copy, 512 px icon and 1024×500 feature graphic live in `store/`.
 
 ## Testing
 

@@ -43,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -54,7 +55,7 @@ import eu.colega.tacho.core.tachograph.HolderName
 import eu.colega.tacho.core.tachograph.efName
 import java.time.LocalDate
 
-/** Card overview: holder identity, validity, current session and raw-data export. */
+/** Card overview: holder identity, validity, last recorded vehicle use and card file actions. */
 @Composable
 fun CardScreen(
     viewModel: CardViewModel = hiltViewModel(),
@@ -63,6 +64,8 @@ fun CardScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
+    val uriHandler = LocalUriHandler.current
+    val privacyPolicyUrl = stringResource(R.string.privacy_policy_url)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -113,6 +116,12 @@ fun CardScreen(
                 Icon(Icons.Filled.FolderOpen, contentDescription = null, modifier = Modifier.size(18.dp))
                 Text(stringResource(R.string.card_import_dump), Modifier.padding(start = 8.dp))
             }
+        }
+        TextButton(
+            onClick = { uriHandler.openUri(privacyPolicyUrl) },
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+        ) {
+            Text(stringResource(R.string.privacy_policy))
         }
     }
 }
